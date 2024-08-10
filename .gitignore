@@ -1,0 +1,9 @@
+# Files
+/wally.lock
+/aftman.toml
+/sourcemap.json
+
+# Folders
+Packages
+ServerPackages
+.vscode
