@@ -1,5 +1,8 @@
---!nonstrict
-local ReplicatedFirst = game:GetService("ReplicatedFirst")
+--[=[
+	@class Server
+
+	Contains the server functionality of fish framework
+]=]
 local Server = {}
 
 --// Dependencies
@@ -16,6 +19,9 @@ local isStarting = false
 local startedSignal = Signal.new()
 
 --[=[
+	@ignore
+	@prop N/A nil
+	@within Server
 	Markers that identify the type of class they are
 ]=]
 local SIGNAL_MARKER = newproxy(true)
@@ -36,6 +42,10 @@ end
 --[=[
 	Constructs/gets a service.
 	If the service already exists, the existing service will be returned.
+
+	@param name string -- The name of the service
+	@param serviceDef fish.ServiceDef<T>? -- The definition of the service
+	@return fish.Service<T> -- The service itself
 ]=]
 function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?): fish.Service<T>
 	if serviceDef == nil or services[name] ~= nil then
@@ -68,6 +78,8 @@ end
 
 --[=[
 	Constructs all services out of the modules in the descendants in the given instance.
+
+	@param folder Instance -- The instance containing the service modules
 ]=]
 function Server.serviceDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
@@ -81,6 +93,8 @@ end
 
 --[=[
 	Returns a marker that will transform into a RemoteSignal once all services are started.
+
+	@return RemoteSignal
 ]=]
 function Server.signal(): DependencyTypes.RemoteSignal
 	return SIGNAL_MARKER
@@ -88,6 +102,8 @@ end
 
 --[=[
 	Returns a marker that will transform into a RemoteProperty once all services are started.
+
+	@return RemoteProperty
 ]=]
 function Server.property(initialValue: any): DependencyTypes.RemoteProperty
 	return { PROPERTY_MARKER, initialValue } :: DependencyTypes.RemoteProperty
@@ -96,8 +112,10 @@ end
 --[=[
 	Starts all created services.
 	Services cannot be created after called.
+
+	@return Promise.TypedPromise<nil> -- Promise that resolves when started
 ]=]
-function Server.start(): Promise.TypedPromise<any>
+function Server.start(): Promise.TypedPromise<nil>
 	if started then
 		return Promise.reject("fish is already started")
 	elseif isStarting then
@@ -150,8 +168,8 @@ function Server.start(): Promise.TypedPromise<any>
 			started = true
 			startedSignal:Fire()
 			local startedValue = Instance.new("BinaryStringValue")
-			startedValue.Name = "fishServerStarted"
-			startedValue.Parent = ReplicatedFirst
+			startedValue.Name = "__fishServerStarted"
+			startedValue.Parent = script.Parent
 			resolve()
 		end)
 	end
@@ -159,8 +177,10 @@ end
 
 --[=[
 	Returns a promise that is resolved once services are started.
+
+	@return Promise.TypedPromise<nil> -- Promise that resolves when started
 ]=]
-function Server.onStart(): Promise.TypedPromise<any>
+function Server.onStart(): Promise.TypedPromise<nil>
 	if started then
 		return Promise.resolve()
 	else

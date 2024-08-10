@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2024-08-10
+
+### Added
+
+- Documentation to the entire project using [Moonwave](https://github.com/evaera/moonwave)
+
+### Changed
+
+- Moved server started object indicator into the package instead of ReplicatedFirst to prevent potential future interference with the client starting
+- README was changed to include information about documentation
+
+### Removed
+
+- A `!nonstrict` comment that was put in Server.lua mistakenly during testing
+
+### Fixed
+
+- Invalid reference in ClientService.lua when ran in context
+
 ## [1.0.5] - 2024-08-10
 
 ### Changed
@@ -43,7 +62,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.0.5...HEAD
+[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/StevenDahFish/fish/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/StevenDahFish/fish/compare/v1.0.4...v1.0.5
 [1.0.2 - 1.0.4]: https://github.com/StevenDahFish/fish/compare/v1.0.1...v1.0.4
 [1.0.1]: https://github.com/StevenDahFish/fish/compare/v1.0.0...v1.0.1

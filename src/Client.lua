@@ -1,4 +1,9 @@
-local ReplicatedFirst = game:GetService("ReplicatedFirst")
+--[=[
+	@class Client
+
+	Contains the client functionality of fish framework
+]=]
+
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 local Client = {}
@@ -18,6 +23,8 @@ local isStarting = false
 local startedSignal = Signal.new()
 
 --[=[
+	@ignore
+	@within Client
 	Builds a service using the service's definition folder.
 ]=]
 local function buildService(serviceDefinition: Folder): fish.ServiceRef
@@ -29,6 +36,8 @@ local function buildService(serviceDefinition: Folder): fish.ServiceRef
 end
 
 --[=[
+	@prop ClientService ModuleScript
+	@within Client
 	Reference to the ClientService module which represents a service from the client context
 ]=]
 Client.ClientService = script.Parent.ClientService :: ModuleScript
@@ -36,6 +45,10 @@ Client.ClientService = script.Parent.ClientService :: ModuleScript
 --[=[
 	Constructs/gets a controller.
 	If the controller already exists, the existing controller will be returned.
+
+	@param name string -- The name of the controller
+	@param controllerDef fish.ControllerDef<T>? -- The definition of the controller
+	@return fish.Controller<T> -- The controller itself
 ]=]
 function Client.controller<T>(name: string, controllerDef: fish.ControllerDef<T>?): fish.Controller<T>
 	if controllerDef == nil or controllers[name] ~= nil then
@@ -65,6 +78,8 @@ end
 
 --[=[
 	Constructs all controllers out of the modules in the children in the given instance.
+
+	@param folder Instance -- The instance containing the controller modules
 ]=]
 function Client.controllerDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
@@ -78,9 +93,12 @@ end
 
 --[=[
 	Get a service.
+
+	@param name string -- The name of the service
+	@return fish.ServiceRef? -- The reference to the service
 ]=]
 function Client.service(name: string): fish.ServiceRef?
-	-- assert(game:GetAttribute("fishServerStarted") == true, "fish server has not started")
+	-- assert(game:GetAttribute("__fishServerStarted") == true, "fish server has not started")
 	
 	local servicesFolder: Folder = script.Parent.Services
 	local serviceFolder = servicesFolder:FindFirstChild(name) :: Folder?
@@ -95,9 +113,11 @@ end
 
 --[=[
 	Get all public services visible to the client.
+	
+	@return {[string]: fish.ServiceRef} -- The list of services indexed by its name
 ]=]
 function Client.getServices(): {[string]: fish.ServiceRef}
-	-- assert(game:GetAttribute("fishServerStarted") == true, "fish server has not started")
+	-- assert(game:GetAttribute("__fishServerStarted") == true, "fish server has not started")
 	local servicesFolder: Folder = script.Parent.Services
 	for _, service in servicesFolder:GetChildren() do
 		if services[service.Name] == nil then
@@ -109,9 +129,11 @@ end
 
 --[=[
 	Get all public service names visible to the client.
+
+	@return {string} -- The list of service names
 ]=]
 function Client.getServiceNames(): {string}
-	-- assert(game:GetAttribute("fishServerStarted") == true, "fish server has not started")
+	-- assert(game:GetAttribute("__fishServerStarted") == true, "fish server has not started")
 	local servicesFolder: Folder = script.Parent.Services
 	return TableUtil.Map(servicesFolder:GetChildren(), function(serviceFolder)
 		return serviceFolder.Name
@@ -121,8 +143,10 @@ end
 --[=[
 	Starts all created controllers.
 	Controllers cannot be created after called.
+
+	@return Promise.TypedPromise<nil> -- Promise that resolves when started
 ]=]
-function Client.start(): Promise.TypedPromise<any>
+function Client.start(): Promise.TypedPromise<nil>
 	-- If starting
 	if started then
 		return Promise.reject("fish already started")
@@ -144,8 +168,10 @@ end
 
 --[=[
 	Returns a promise that is resolved once controllers are started.
+
+	@return Promise.TypedPromise<nil> -- Promise that resolves when started
 ]=]
-function Client.onStart(): Promise.TypedPromise<any>
+function Client.onStart(): Promise.TypedPromise<nil>
 	if started then
 		return Promise.resolve()
 	else
@@ -155,11 +181,11 @@ end
 
 -- Wait for server to initialize
 if RunService:IsClient() then
-	if game:GetAttribute("fishServerStarted") ~= true then
-		if ReplicatedFirst:FindFirstChild("fishServerStarted") == nil then
+	if game:GetAttribute("__fishServerStarted") ~= true then
+		if script.Parent:FindFirstChild("__fishServerStarted") == nil then
 			local signal = Signal.new()
-			local connection = ReplicatedFirst.ChildAdded:Connect(function(object)
-				if object.Name == "fishServerStarted" then
+			local connection = script.Parent.ChildAdded:Connect(function(object)
+				if object.Name == "__fishServerStarted" then
 					signal:Fire()
 				end
 			end)
@@ -167,8 +193,8 @@ if RunService:IsClient() then
 			signal:Destroy()
 			connection:Disconnect()
 		end
-		game:SetAttribute("fishServerStarted", true)
-		ReplicatedFirst:FindFirstChild("fishServerStarted"):Destroy()
+		game:SetAttribute("__fishServerStarted", true)
+		script.Parent:FindFirstChild("__fishServerStarted"):Destroy()
 	end
 	
 	-- Add ClientService modules

@@ -1,4 +1,12 @@
 --[=[
+	@ignore
+	@class DependencyTypes
+]=]
+
+--[=[
+	@ignore
+	@prop N/A nil
+	@within DependencyTypes
 	Comm - sleitnick
 	These types were already written -- this was put into this module for ease of access
 ]=]
@@ -16,10 +24,14 @@ export type ClientMiddlewareFn = (Args) -> (boolean, ...any)
 export type ClientMiddleware = { ClientMiddlewareFn }
 
 --[=[
+	@ignore
+	@prop N/A nil
+	@within DependencyTypes
 	RemoteSignal - sleitnick
 ]=]
 
 --[=[
+	@ignore
 	@class RemoteSignal
 	@server
 	Created via `ServerComm:CreateSignal()`.
@@ -130,6 +142,9 @@ export type RemoteSignal = {
 }
 
 --[=[
+	@ignore
+	@prop N/A nil
+	@within DependencyTypes
 	RemoteProperty - sleitnick
 ]=]
 

@@ -18,7 +18,9 @@ if RunService:IsClient() and script:FindFirstChild("Server") then
 end
 
 --[=[
-	Type used to describe the "self" object in Client functions
+	@type self<C,S> C & { Player: Player, Server: S, [any]: any }
+	@within Types
+	Type used to describe the `self` object in Client functions
 	```lua
 	function MyService.Client.PrintPlayer(self: fish.self<client, server>)
 		print(self.Player)
