@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 --// Core
-local fish = require(ReplicatedStorage.Packages.fish.Server)
+local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server
 local t = require(ReplicatedStorage.Packages.t)
 local TestService = {Client = {}}
 

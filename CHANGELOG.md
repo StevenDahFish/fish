@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.2 - 1.0.4] - 2024-08-09
+## [1.0.5] - 2024-08-10
+
+### Changed
+
+- Moved "self" type definition to root (init.lua) in order to be importable by service modules
+
+## [1.0.2 - 1.0.4] - 2024-08-10
 
 ### Changed
 
@@ -37,7 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.0.4...HEAD
+[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/StevenDahFish/fish/compare/v1.0.4...v1.0.5
 [1.0.2 - 1.0.4]: https://github.com/StevenDahFish/fish/compare/v1.0.1...v1.0.4
 [1.0.1]: https://github.com/StevenDahFish/fish/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/StevenDahFish/fish/releases/tag/v1.0.0

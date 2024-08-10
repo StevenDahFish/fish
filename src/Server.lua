@@ -168,18 +168,4 @@ function Server.onStart(): Promise.TypedPromise<any>
 	end
 end
 
---[=[
-	Type used to describe the "self" object in Client functions
-	```lua
-	function MyService.Client.PrintPlayer(self: fish.self<client, server>)
-		print(self.Player)
-	end
-	```
-]=]
-export type self<C, S> = C & {
-	Player: Player,
-	Server: S,
-	[any]: any
-};
-
 return Server
