@@ -5,10 +5,11 @@ local ServerStorage = game:GetService("ServerStorage")
 
 --// Core
 local fish = require(ReplicatedStorage.Packages.fish.Server)
-local Promise = require(ReplicatedStorage.Packages.Promise)
+local t = require(ReplicatedStorage.Packages.t)
 local TestService = {Client = {}}
 
 --// Dependencies
+local Promise = require(ReplicatedStorage.Packages.Promise)
 local ExampleModule = require(ServerStorage.Server.Modules.ExampleModule)
 local OtherService = require(script.Parent.OtherService)
 
@@ -21,6 +22,7 @@ TestService.Client.SayHello = fish.signal()
 
 --// Functions
 function TestService.Client.SayHelloPublic(self: fish.self<sclient, server>, yes: string): boolean
+	assert(t.tuple(t.string)(yes))
 	warn("== SayHelloPublic called == ")
 	print("Hello public!")
 	print("from:", self.Player)

@@ -1,4 +1,3 @@
-local Players = game:GetService("Players")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -11,7 +10,6 @@ local TableUtil = require(ReplicatedStorage.Packages.TableUtil)
 local Promise = require(ReplicatedStorage.Packages.Promise)
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local fish = require(script.Parent.Types)
-local t = require(ReplicatedStorage.Packages.t)
 
 --// Constants & Variables
 local controllers: {[string]: fish.Controller<any>} = {}
@@ -27,16 +25,6 @@ local function buildService(serviceDefinition: Folder): fish.ServiceRef
 	local comm = ClientComm.new(serviceDefinition.Parent :: Folder, true, serviceDefinition.Name) :: any
 	local service = comm:BuildObject()
 
-	-- for _, mappedObject in service do
-	-- 	if type(mappedObject) == "function" then
-	-- 		-- Function
-	-- 	elseif Signal.Is(mappedObject) then
-	-- 		-- Signal
-	-- 	elseif type(mappedObject) == "table" then
-	-- 		-- Property
-	-- 	end
-	-- end
-
 	services[serviceDefinition.Name] = service
 	return service
 end
@@ -49,7 +37,6 @@ Client.ClientService = script.Parent.ClientService :: ModuleScript
 --[=[
 	Constructs/gets a controller.
 	If the controller already exists, the existing controller will be returned.
-	If the controller does not exist yet but will in the future, this will return an empty table until the contoller is created. TODO: implement this
 ]=]
 function Client.controller<T>(name: string, controllerDef: fish.ControllerDef<T>?): fish.Controller<T>
 	if controllerDef == nil or controllers[name] ~= nil then

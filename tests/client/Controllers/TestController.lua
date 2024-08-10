@@ -8,7 +8,6 @@ local TestController = {}
 
 --// Dependencies
 local TestService = require(ServerStorage.Server.Services.TestService); local TestService: TestService.client = TestService
-local Promise = require(ReplicatedStorage.Packages.Promise)
 local ExampleController = require(script.Parent.ExampleController)
 
 --// Constants
@@ -25,6 +24,7 @@ function TestController:Start()
 	end)
 	TestService.SayHello:Connect(function()
 		print("I was told to say hello!")
+		TestService:SayHelloPublic(1 :: any) -- Invalid type
 	end)
 end
 

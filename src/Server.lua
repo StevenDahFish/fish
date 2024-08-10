@@ -1,12 +1,10 @@
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerStorage = game:GetService("ServerStorage")
 local Server = {}
 
 --// Dependencies
 local DependencyTypes = require(script.Parent.DependencyTypes)
 local ServerComm = require(ReplicatedStorage.Packages.Comm).ServerComm
-local TableUtil = require(ReplicatedStorage.Packages.TableUtil)
 local Promise = require(ReplicatedStorage.Packages.Promise)
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local fish = require(script.Parent.Types)
@@ -38,7 +36,6 @@ end
 --[=[
 	Constructs/gets a service.
 	If the service already exists, the existing service will be returned.
-	If the service does not exist yet but will in the future, this will return an empty table until the service is created. TODO: implement this
 ]=]
 function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?): fish.Service<T>
 	if serviceDef == nil or services[name] ~= nil then
