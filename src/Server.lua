@@ -1,12 +1,12 @@
+--!nonstrict
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Server = {}
 
 --// Dependencies
 local DependencyTypes = require(script.Parent.DependencyTypes)
-local ServerComm = require(ReplicatedStorage.Packages.Comm).ServerComm
-local Promise = require(ReplicatedStorage.Packages.Promise)
-local Signal = require(ReplicatedStorage.Packages.Signal)
+local ServerComm = require(script.Parent.Parent.Comm).ServerComm
+local Promise = require(script.Parent.Parent.Promise)
+local Signal = require(script.Parent.Parent.Signal)
 local fish = require(script.Parent.Types)
 
 --// Constants & Variables

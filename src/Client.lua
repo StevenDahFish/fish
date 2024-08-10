@@ -1,14 +1,13 @@
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 local Client = {}
 
 --// Dependencies
-local ClientComm = require(ReplicatedStorage.Packages.Comm).ClientComm
-local TableUtil = require(ReplicatedStorage.Packages.TableUtil)
-local Promise = require(ReplicatedStorage.Packages.Promise)
-local Signal = require(ReplicatedStorage.Packages.Signal)
+local ClientComm = require(script.Parent.Parent.Comm).ClientComm
+local TableUtil = require(script.Parent.Parent.TableUtil)
+local Promise = require(script.Parent.Parent.Promise)
+local Signal = require(script.Parent.Parent.Signal)
 local fish = require(script.Parent.Types)
 
 --// Constants & Variables

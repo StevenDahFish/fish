@@ -17,9 +17,6 @@
 			"$className": "ServerStorage",
 			"Server": {
 				"$path": "tests/server"
-			},
-			"Packages": {
-				"$path": "ServerPackages"
 			}
 		},
 
