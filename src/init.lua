@@ -1,5 +1,6 @@
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
+local DependencyTypes = require(script.DependencyTypes)
 
 if RunService:IsClient() and script:FindFirstChild("Server") then
 	local serverInstance = script:FindFirstChild("Server")
@@ -32,6 +33,21 @@ export type self<C, S> = C & {
 	Server: S,
 	[any]: any
 };
+
+--[=[
+	@ignore
+	@class ClientRemoteSignal
+	@client
+	Created via `ClientComm:GetSignal()`.
+]=]
+export type ClientRemoteSignal = DependencyTypes.ClientRemoteSignal
+
+--[=[
+	@class ClientRemoteProperty
+	@client
+	Created via `ClientComm:GetProperty()`.
+]=]
+export type ClientRemoteProperty = DependencyTypes.ClientRemoteProperty
 
 return {
 	Server = require(script.Server),

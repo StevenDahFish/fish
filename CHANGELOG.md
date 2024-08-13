@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2024-08-12
+
+### Added
+
+- ClientRemoteSignal and ClientRemoteProperty types to DependencyTypes.lua and exported them in root (init.lua) in order to be importable by service modules
+
 ## [1.0.6] - 2024-08-10
 
 ### Added
@@ -62,7 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.0.6...HEAD
+[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.0.7...HEAD
+[1.0.7]: https://github.com/StevenDahFish/fish/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/StevenDahFish/fish/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/StevenDahFish/fish/compare/v1.0.4...v1.0.5
 [1.0.2 - 1.0.4]: https://github.com/StevenDahFish/fish/compare/v1.0.1...v1.0.4

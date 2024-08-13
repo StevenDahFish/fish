@@ -39,8 +39,9 @@ end
 
 --// Mapping
 export type client = {
+	SayHello: fish.ClientRemoteSignal,
 	SayHelloPublic: (self: any, yes: string) -> Promise.TypedPromise<boolean>
-} & typeof(TestService.Client)
+}
 
 type server = typeof(TestService)
 type sclient = typeof(TestService.Client)
