@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[226],{58320:e=>{e.exports=JSON.parse('{"functions":[],"properties":[],"types":[],"name":"ClientRemoteProperty","desc":"Created via `ClientComm:GetProperty()`.","realm":["Client"],"source":{"line":50,"path":"src/init.lua"}}')}}]);
