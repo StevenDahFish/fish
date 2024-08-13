@@ -173,6 +173,7 @@ export type ClientRemoteSignal = {
 
 
 --[=[
+	@ignore
 	@class RemoteProperty
 	@server
 	Created via `ServerComm:CreateProperty()`.
@@ -371,6 +372,7 @@ export type RemoteProperty = {
 }
 
 --[=[
+	@ignore
 	@class ClientRemoteProperty
 	@client
 	Created via `ClientComm:GetProperty()`.

@@ -43,6 +43,7 @@ export type self<C, S> = C & {
 export type ClientRemoteSignal = DependencyTypes.ClientRemoteSignal
 
 --[=[
+	@ignore
 	@class ClientRemoteProperty
 	@client
 	Created via `ClientComm:GetProperty()`.
