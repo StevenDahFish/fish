@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Limitations section to README about cyclic dependencies
+
 ### Fixed
 
 - Added `@ignore` comment to ClientRemoteSignal and ClientRemoteProperty types to prevent being added to documentation site

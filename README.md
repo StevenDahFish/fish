@@ -10,3 +10,34 @@ This framework is inspired from [Knit](https://github.com/Sleitnick/Knit) and wa
 View the [documentation](https://stevendahfish.github.io/fish/) to see how to use this framework.
 ## Structure
 The structure of projects was tightly integrated into the framework, meaning the way Services and Controllers are organized are strict and should not be changed in order to provide typings as expected. View the [tests](https://github.com/StevenDahFish/fish/blob/master/tests) folder for an example of this.
+## Limitations
+### Cyclic Dependencies
+When requiring two services in each other (AService requires BService which requires AService...), this create a cyclic dependency. Unfortunately, due to how requiring modules works, it's not possible to avoid this error with the current way services are imported. The only solution is to cast the type `any` in one of the services, removing its typing for that service in the process.
+
+```lua
+--==============--
+-- ServiceA.lua --
+--==============--
+
+--// Core
+local ServiceA = {}
+
+--// Dependencies
+local ServiceB = require(script.Parent.ServiceB)
+
+return fish.service("ServiceA", ServiceA)
+
+--==============--
+-- ServiceB.lua --
+--==============--
+
+--// Core
+local ServiceB = {}
+
+--// Dependencies
+local ServiceA = require(script.Parent.ServiceA) :: any -- casting type "any"
+
+return fish.service("ServiceB", ServiceB)
+```
+
+![A flowchart showcasing how cyclic dependencies cause an issue.](cyclic_dependency.png)
