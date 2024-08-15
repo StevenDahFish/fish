@@ -12,7 +12,7 @@ View the [documentation](https://stevendahfish.github.io/fish/) to see how to us
 The structure of projects was tightly integrated into the framework, meaning the way Services and Controllers are organized are strict and should not be changed in order to provide typings as expected. View the [tests](https://github.com/StevenDahFish/fish/blob/master/tests) folder for an example of this.
 ## Limitations
 ### Cyclic Dependencies
-When requiring two services in each other (AService requires BService which requires AService...), this create a cyclic dependency. Unfortunately, due to how requiring modules works, it's not possible to avoid this error with the current way services are imported. The only solution is to cast the type `any` in one of the services, removing its typing for that service in the process.
+When requiring two services in each other (AService requires BService which requires AService...), this create a cyclic dependency. Unfortunately, due to how requiring modules works, it's not possible to avoid this error with the current way services are imported. The only solution is to cast the type `any` in one of the services, removing its typing for that service in the process. The service must also be required outside of the global context (ex. within the Start function).
 
 ```lua
 --==============--
@@ -34,8 +34,9 @@ return fish.service("ServiceA", ServiceA)
 --// Core
 local ServiceB = {}
 
---// Dependencies
-local ServiceA = require(script.Parent.ServiceA) :: any -- casting type "any"
+function ServiceB:Start()
+	local ServiceA = require(script.Parent.ServiceA) :: any -- casting type "any"
+end
 
 return fish.service("ServiceB", ServiceB)
 ```
