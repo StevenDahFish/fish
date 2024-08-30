@@ -35,7 +35,7 @@ return fish.service("ServiceA", ServiceA)
 local ServiceB = {}
 
 function ServiceB:Start()
-	local ServiceA = require(script.Parent.ServiceA) :: any -- casting type "any"
+    local ServiceA = require(script.Parent.ServiceA) :: any -- casting type "any"
 end
 
 return fish.service("ServiceB", ServiceB)

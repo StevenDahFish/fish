@@ -1,0 +1,21 @@
+[home]
+enabled = true
+includeReadme = false
+
+[docusaurus]
+tagline = "An experiential typed framework for Roblox."
+
+[[home.features]]
+title = "Strictly typed"
+description = "Typing being the primary focus of this framework allows intellisense to do most of the work for you"
+image = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1icmljay13YWxsIj48cmVjdCB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHg9IjMiIHk9IjMiIHJ4PSIyIi8+PHBhdGggZD0iTTEyIDl2NiIvPjxwYXRoIGQ9Ik0xNiAxNXY2Ii8+PHBhdGggZD0iTTE2IDN2NiIvPjxwYXRoIGQ9Ik0zIDE1aDE4Ii8+PHBhdGggZD0iTTMgOWgxOCIvPjxwYXRoIGQ9Ik04IDE1djYiLz48cGF0aCBkPSJNOCAzdjYiLz48L3N2Zz4="
+
+[[home.features]]
+title = "Heavily Knit-inspired"
+description = "The structure of the framework is entirely based on Knit with Services and Controllers"
+image = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1jbG91ZCI+PHBhdGggZD0iTTE3LjUgMTlIOWE3IDcgMCAxIDEgNi43MS05aDEuNzlhNC41IDQuNSAwIDEgMSAwIDlaIi8+PC9zdmc+"
+
+[[home.features]]
+title = "Convenience"
+description = "Stay focused on coding the features instead of managing the miniscule details"
+image = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1hcnJvdy1iaWctdXAtZGFzaCI+PHBhdGggZD0iTTkgMTloNiIvPjxwYXRoIGQ9Ik05IDE1di0zSDVsNy03IDcgN2gtNHYzSDl6Ii8+PC9zdmc+"

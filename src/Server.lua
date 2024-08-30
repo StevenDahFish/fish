@@ -144,8 +144,20 @@ function Server.start(): Promise.TypedPromise<nil>
 
 			for name, service in services do
 				Promise.try(function()
-					local comm = ServerComm.new(servicesFolder, name) :: any
 					local client = service.Client :: {[any]: any}
+
+					local hasPublicComms = false
+					for k in client do
+						if k ~= "Server" then
+							hasPublicComms = true
+							break
+						end
+					end
+					if not hasPublicComms then
+						return
+					end
+
+					local comm = ServerComm.new(servicesFolder, name) :: any
 					for k, v in client do
 						if type(v) == "function" then
 							client[k] = wrapFunction(v)
