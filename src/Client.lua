@@ -36,13 +36,6 @@ local function buildService(serviceDefinition: Folder): fish.ServiceRef
 end
 
 --[=[
-	@prop ClientService ModuleScript
-	@within Client
-	Reference to the ClientService module which represents a service from the client context
-]=]
-Client.ClientService = script.Parent.ClientService :: ModuleScript
-
---[=[
 	Constructs/gets a controller.
 	If the controller already exists, the existing controller will be returned.
 
@@ -198,8 +191,9 @@ if RunService:IsClient() then
 	end
 	
 	-- Add ClientService modules
+	local ClientService: ModuleScript = script.Parent.ClientService
 	for _, name in Client.getServiceNames() do
-		local serviceModule = Client.ClientService:Clone()
+		local serviceModule = ClientService:Clone()
 		serviceModule.Name = name
 		serviceModule.Parent = ServerStorage.Server.Services
 	end

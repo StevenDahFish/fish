@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- ClientService reference is no longer public in the Client module
+
 ## [1.0.8] - 2024-08-29
 
 ### Added
