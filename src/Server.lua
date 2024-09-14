@@ -154,6 +154,7 @@ function Server.start(): Promise.TypedPromise<nil>
 						end
 					end
 					if not hasPublicComms then
+						service:Start()
 						return
 					end
 

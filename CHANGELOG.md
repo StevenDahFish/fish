@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.9] - 2024-09-13
+
 ### Changed
 - ClientService reference is no longer public in the Client module
+
+### Fixed
+- The Start function on services will now run if the Client table is empty
+- If the server takes longer to load, the client will now properly wait to initialize
 
 ## [1.0.8] - 2024-08-29
 
@@ -87,7 +93,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.0.8...HEAD
+[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.0.9...HEAD
+[1.0.9]: https://github.com/StevenDahFish/fish/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/StevenDahFish/fish/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/StevenDahFish/fish/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/StevenDahFish/fish/compare/v1.0.5...v1.0.6

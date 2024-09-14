@@ -185,6 +185,7 @@ if RunService:IsClient() then
 			signal:Wait()
 			signal:Destroy()
 			connection:Disconnect()
+			task.wait()
 		end
 		game:SetAttribute("__fishServerStarted", true)
 		script.Parent:FindFirstChild("__fishServerStarted"):Destroy()
