@@ -10,7 +10,6 @@ local Client = {}
 
 --// Dependencies
 local ClientComm = require(script.Parent.Parent.Comm).ClientComm
-local TableUtil = require(script.Parent.Parent.TableUtil)
 local Promise = require(script.Parent.Parent.Promise)
 local Signal = require(script.Parent.Parent.Signal)
 local fish = require(script.Parent.Types)
@@ -127,10 +126,12 @@ end
 ]=]
 function Client.getServiceNames(): {string}
 	-- assert(game:GetAttribute("__fishServerStarted") == true, "fish server has not started")
-	local servicesFolder: Folder = script.Parent.Services
-	return TableUtil.Map(servicesFolder:GetChildren(), function(serviceFolder)
-		return serviceFolder.Name
-	end)
+	local serviceFolders: {Folder} = script.Parent.Services:GetChildren()
+	local serviceNames = {}
+	for _, serviceFolder in serviceFolders do
+		table.insert(serviceNames, serviceFolder.Name)
+	end
+	return serviceNames
 end
 
 --[=[
