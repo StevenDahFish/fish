@@ -19,17 +19,34 @@ if RunService:IsClient() and script:FindFirstChild("Server") then
 end
 
 --[=[
-	@type self<C,S> C & { Player: Player, Server: S, [any]: any }
+	@type self<C,S> C & { Player: Player, Mutex: { Lock: (self) -> (), Unlock: (self) -> (), Wrap: (self, (...any) -> (), ...any) -> (boolean, ...any) }, Server: S, [any]: any }
 	@within Types
 	Type used to describe the `self` object in Client functions
 	```lua
 	function MyService.Client.PrintPlayer(self: fish.self<client, server>)
 		print(self.Player)
+		
+		--> Mutex with locking & unlocking
+		self.Mutex:Lock()
+		-- Run critical section
+		self.Mutex:Unlock()
+		
+		--> Mutex with wrapping
+		local success, result = self.Mutex:Wrap(function(parameter)
+			-- Run critical section
+			return parameter
+		end, 1)
+		print(success, result) --> Output: true, 1
 	end
 	```
 ]=]
 export type self<C, S> = C & {
 	Player: Player,
+	Mutex: {
+		Lock: (self: any) -> (),
+		Unlock: (self: any) -> (),
+		Wrap: (self: any, (...any) -> (), ...any) -> (boolean, ...any)
+	},
 	Server: S,
 	[any]: any
 };

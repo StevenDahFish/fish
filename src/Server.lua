@@ -10,6 +10,7 @@ local DependencyTypes = require(script.Parent.DependencyTypes)
 local ServerComm = require(script.Parent.Parent.Comm).ServerComm
 local Promise = require(script.Parent.Parent.Promise)
 local Signal = require(script.Parent.Parent.Signal)
+local Mutex = require(script.Parent.Parent.Mutex)
 local fish = require(script.Parent.Types)
 
 --// Constants & Variables
@@ -129,6 +130,7 @@ function Server.start(): Promise.TypedPromise<nil>
 
 			-- Wrap function to alter parameter functionality with player
 			local function wrapFunction(func)
+				local mutex = Mutex.new()
 				return function(self, player, ...)
 					-- Create a local copy of `self` and inject `player` into it
 					local localSelf = {}
@@ -136,6 +138,22 @@ function Server.start(): Promise.TypedPromise<nil>
 						localSelf[k] = v
 					end
 					localSelf.Player = player
+
+					-- Implement mutex and inject it
+					localSelf.Mutex = {
+						Lock = function(self: any)
+							mutex:Lock()
+						end,
+						Unlock = function(self: any)
+							mutex:Unlock()
+						end,
+						Wrap = function(self: any, func: (...any) -> (), ...)
+							mutex:Lock()
+							local results = {pcall(func, ...)}
+							mutex:Unlock()
+							return unpack(results)
+						end
+					}
 					
 					-- Call the original function with the modified `localSelf`
 					return func(localSelf, ...)

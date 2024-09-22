@@ -1,7 +1,7 @@
 [package]
 name = "stevendahfish/fish"
 description = "An experiential typed framework for Roblox"
-version = "1.0.9"
+version = "1.1.0"
 license = "MIT"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
@@ -11,6 +11,7 @@ include = ["wally.toml", "default.project.json", ".luaurc", "LICENSE", "src", "s
 [dependencies]
 Cmdr = "evaera/cmdr@^1"
 Comm = "sleitnick/comm@^1"
+Mutex = "notfenv/mutex@^1"
 Signal = "sleitnick/signal@^2"
 Promise = "stevendahfish/typed-promise@^4"
 TableUtil = "sleitnick/table-util@^1"
