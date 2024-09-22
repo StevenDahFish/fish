@@ -99,7 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The base functionality of the entire framework!
 
 [unreleased]: https://github.com/StevenDahFish/fish/compare/v1.1.0...HEAD
-[1.0.9]: https://github.com/StevenDahFish/fish/compare/v1.0.9...v1.1.0
+[1.1.0]: https://github.com/StevenDahFish/fish/compare/v1.0.9...v1.1.0
 [1.0.9]: https://github.com/StevenDahFish/fish/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/StevenDahFish/fish/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/StevenDahFish/fish/compare/v1.0.6...v1.0.7
