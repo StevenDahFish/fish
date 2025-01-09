@@ -147,8 +147,30 @@ function Client.start(): Promise.TypedPromise<nil>
 	elseif isStarting then
 		return Promise.reject("fish is already starting")
 	else
+		-- Sort controller load order by priority
+		local hasPriority = {}
+		local noPriority = {}
+		for _, controller in controllers do
+			if controller.LoadPriority then
+				table.insert(hasPriority, controller)
+			else
+				table.insert(noPriority, controller)
+			end
+		end
+		table.sort(hasPriority, function(a, b)
+			return (a.LoadPriority :: number) > (b.LoadPriority :: number)
+		end)
+		
+		local sortedControllers = {}
+		for _, controller in hasPriority do
+			table.insert(sortedControllers, controller)
+		end
+		for _, controller in noPriority do
+			table.insert(sortedControllers, controller)
+		end
+
 		return Promise.new(function(resolve)
-			for _, controller in controllers do
+			for _, controller in sortedControllers do
 				Promise.try(function()
 					controller:Start()
 				end)

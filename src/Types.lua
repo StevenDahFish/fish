@@ -48,12 +48,13 @@ export type ControllerDef<T> = T & {
 }
 
 --[=[
-	@type Controller<T> T & { Start: (any) -> any, [any]: any }
+	@type Controller<T> T & { Start: (any) -> any, LoadPriority: number?, [any]: any }
 	@within Types
 	A controller as seen in the client context
 ]=]
 export type Controller<T> = T & {
 	Start: (any) -> any,
+	LoadPriority: number?,
 	[any]: any
 }
 
