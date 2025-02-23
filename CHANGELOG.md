@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-02-22
+
+### Added
+- Directory structuring when adding services with .serviceDeep()
+- You can provide an "@load" module in the same directory as a service that returns a function that returns a boolean that determines whether a module should be loaded on start
+
+### Changed
+- When creating services, you now need to provide its own script instance for directory structuring to work
+
+### Fixed
+- Type definitions with extra whitespace
+
+### Removed
+- getServiceNames() from Client as it was redundant
+
 ## [1.1.1] - 2025-01-08
 
 ### Added
@@ -105,7 +120,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[1.1.1]: https://github.com/StevenDahFish/fish/compare/v1.1.0...HEAD
+[1.1.2]: https://github.com/StevenDahFish/fish/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/StevenDahFish/fish/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/StevenDahFish/fish/compare/v1.0.9...v1.1.0
 [1.0.9]: https://github.com/StevenDahFish/fish/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/StevenDahFish/fish/compare/v1.0.7...v1.0.8

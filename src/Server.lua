@@ -15,6 +15,7 @@ local fish = require(script.Parent.Types)
 
 --// Constants & Variables
 local services: {[string]: fish.Service<any>} = {}
+local serviceDirectories: {Instance} = {}
 local started = false
 local isStarting = false
 local startedSignal = Signal.new()
@@ -46,9 +47,10 @@ end
 
 	@param name string -- The name of the service
 	@param serviceDef fish.ServiceDef<T>? -- The definition of the service
+	@param scriptInstance ModuleScript? -- The script instance of the service
 	@return fish.Service<T> -- The service itself
 ]=]
-function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?): fish.Service<T>
+function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, scriptInstance: ModuleScript?): fish.Service<T>
 	if serviceDef == nil or services[name] ~= nil then
 		-- Get service
 		return services[name] :: fish.Service<T>
@@ -57,6 +59,7 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?): fish.
 		assert(type(name) == "string", `Name must be a string; got {typeof(serviceDef.Name)}`)
 		assert(#name > 0, "Name must be a non-empty string")
 		assert(type(serviceDef) == "table", `Service must be a table; got {typeof(serviceDef)}`)
+		assert(typeof(scriptInstance) == "Instance" and scriptInstance:IsA("ModuleScript"), `Script instance must be provided; got type {typeof(scriptInstance)}`)
 		assert(services[name] == nil, `Service "{serviceDef.Name}" already exists`)
 		assert(not started, "Service cannot be added after calling \"fish.Start()\"")
 
@@ -71,6 +74,9 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?): fish.
 		if type(service.Start) ~= "function" then
 			service.Start = function() end
 		end
+		service.__fishMetadata = {
+			Instance = scriptInstance
+		}
 
 		services[name] = service :: fish.Service<T>
 		return services[name]
@@ -79,14 +85,24 @@ end
 
 --[=[
 	Constructs all services out of the modules in the descendants in the given instance.
+	If the parent of a service module has an "@load" module, it will use it to check whether it should load any service modules in that folder.
 
 	@param folder Instance -- The instance containing the service modules
 ]=]
 function Server.serviceDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
+	table.insert(serviceDirectories, folder)
 	for _, object in folder:GetDescendants() do
 		if object:IsA("ModuleScript") then
-			-- Why luau
+			if object.Parent ~= nil then
+				local loadRequirementModule = object.Parent:FindFirstChild("@load")
+				if loadRequirementModule ~= nil and loadRequirementModule:IsA("ModuleScript") then
+					local shouldLoad = (require)(loadRequirementModule)(object)
+					if not shouldLoad then
+						continue
+					end
+				end
+			end
 			(require)(object)
 		end
 	end
@@ -162,6 +178,7 @@ function Server.start(): Promise.TypedPromise<nil>
 
 			for name, service in services do
 				Promise.try(function()
+					-- Register client functionality
 					local client = service.Client :: {[any]: any}
 
 					local hasPublicComms = false
@@ -190,6 +207,39 @@ function Server.start(): Promise.TypedPromise<nil>
 						end
 					end
 					service.Client = client
+					
+					-- Emulate structure from construction
+					local serviceFolder: Folder = (servicesFolder :: any)[name]
+					local serviceScriptInstance: ModuleScript = service.__fishMetadata.Instance
+					local rootDirectory: Instance? = serviceScriptInstance
+					local parents: {string} = {}
+					while true do
+						if rootDirectory ~= nil and rootDirectory.Parent ~= nil then
+							rootDirectory = rootDirectory.Parent
+							table.insert(parents, rootDirectory.Name)
+							if table.find(serviceDirectories, rootDirectory) ~= nil then
+								-- Found root directory
+								break
+							end
+						else
+							-- No root directory found
+							rootDirectory = nil
+							break
+						end
+					end
+
+					if rootDirectory ~= nil and #parents > 1 then
+						-- Reverse parents and remove root directory
+						for i = 1, math.floor(#parents / 2) do
+							local j = #parents - i + 1
+							parents[i], parents[j] = parents[j], parents[i]
+						end
+						table.remove(parents, 1)
+						
+						serviceFolder:SetAttribute("Structure", table.concat(parents, "."))
+					end
+
+					service.__fishMetadata = nil
 					
 					service:Start()
 				end)

@@ -4,25 +4,25 @@
 ]=]
 
 --[=[
-	@type ServiceDef<T> T & { Client: { [any]: any }?, Start: ((any) -> any)?, [any]: any }
+	@type ServiceDef<T> T & { Client: {[any]: any}?, Start: ((any) -> any)?, [any]: any }
 	@within Types
 	The definition of a service when created using `fish.service(name, serviceDef)`
 ]=]
 export type ServiceDef<T> = T & {
-	Client: { [any]: any }?,
+	Client: {[any]: any}?,
 	Start: ((any) -> any)?,
 	[any]: any
 }
 
 --[=[
-	@type Service<T> T & { Client: { Server: T, [any] : any }, Start: (any) -> any, [any]: any }
+	@type Service<T> T & { Client: { Server: T, [any]: any }, Start: (any) -> any, [any]: any }
 	@within Types
 	A service as seen in the server context
 ]=]
 export type Service<T> = T & {
 	Client: {
 		Server: T,
-		[any] : any 
+		[any]: any 
 	},
 	Start: (any) -> any,
 	[any]: any

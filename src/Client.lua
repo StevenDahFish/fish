@@ -120,21 +120,6 @@ function Client.getServices(): {[string]: fish.ServiceRef}
 end
 
 --[=[
-	Get all public service names visible to the client.
-
-	@return {string} -- The list of service names
-]=]
-function Client.getServiceNames(): {string}
-	-- assert(game:GetAttribute("__fishServerStarted") == true, "fish server has not started")
-	local serviceFolders: {Folder} = script.Parent.Services:GetChildren()
-	local serviceNames = {}
-	for _, serviceFolder in serviceFolders do
-		table.insert(serviceNames, serviceFolder.Name)
-	end
-	return serviceNames
-end
-
---[=[
 	Starts all created controllers.
 	Controllers cannot be created after called.
 
@@ -216,10 +201,21 @@ if RunService:IsClient() then
 	
 	-- Add ClientService modules
 	local ClientService: ModuleScript = script.Parent.ClientService
-	for _, name in Client.getServiceNames() do
+	local serviceFolders: {Folder} = script.Parent.Services:GetChildren()
+	for _, serviceFolder in serviceFolders do
+		local currentDirectory = ServerStorage.Server.Services
+		if serviceFolder:GetAttribute("Structure") ~= nil then
+			local structure = serviceFolder:GetAttribute("Structure") :: string
+			for _, directoryName in structure:split(".") do
+				local directory = Instance.new("Folder")
+				directory.Name = directoryName
+				directory.Parent = currentDirectory
+				currentDirectory = directory
+			end
+		end
 		local serviceModule = ClientService:Clone()
-		serviceModule.Name = name
-		serviceModule.Parent = ServerStorage.Server.Services
+		serviceModule.Name = serviceFolder.Name
+		serviceModule.Parent = currentDirectory
 	end
 end
 
