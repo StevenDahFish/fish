@@ -77,7 +77,15 @@ function Client.controllerDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
 	for _, object in folder:GetDescendants() do
 		if object:IsA("ModuleScript") then
-			-- Why luau
+			if object.Parent ~= nil then
+				local loadRequirementModule = object.Parent:FindFirstChild("@load")
+				if loadRequirementModule ~= nil and loadRequirementModule:IsA("ModuleScript") then
+					local shouldLoad = (require)(loadRequirementModule)(object)
+					if not shouldLoad then
+						continue
+					end
+				end
+			end
 			(require)(object)
 		end
 	end
