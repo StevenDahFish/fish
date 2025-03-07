@@ -29,4 +29,4 @@ export type client = {
 
 type server = typeof(OtherService)
 type sclient = typeof(OtherService.Client)
-return fish.service("OtherService", OtherService)
+return fish.service("OtherService", OtherService, script)

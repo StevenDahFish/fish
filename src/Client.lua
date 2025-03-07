@@ -215,10 +215,15 @@ if RunService:IsClient() then
 		if serviceFolder:GetAttribute("Structure") ~= nil then
 			local structure = serviceFolder:GetAttribute("Structure") :: string
 			for _, directoryName in structure:split(".") do
-				local directory = Instance.new("Folder")
-				directory.Name = directoryName
-				directory.Parent = currentDirectory
-				currentDirectory = directory
+				local existingDirectory = currentDirectory:FindFirstChild(directoryName)
+				if existingDirectory ~= nil then
+					currentDirectory = existingDirectory
+				else
+					local directory = Instance.new("Folder")
+					directory.Name = directoryName
+					directory.Parent = currentDirectory
+					currentDirectory = directory
+				end
 			end
 		end
 		local serviceModule = ClientService:Clone()

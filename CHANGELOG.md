@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2025-03-06
+
+### Fixed
+- Multiple of the same directories being made when structuring for the client with .serviceDeep()
+
+### Changed
+- Services in the tests folder now provide its own script instance as required in v1.1.2
+
 ## [1.1.3] - 2025-02-24
 
 ### Added
@@ -125,7 +133,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[1.1.3]: https://github.com/StevenDahFish/fish/compare/v1.1.2...HEAD
+[1.1.4]: https://github.com/StevenDahFish/fish/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/StevenDahFish/fish/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/StevenDahFish/fish/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/StevenDahFish/fish/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/StevenDahFish/fish/compare/v1.0.9...v1.1.0
