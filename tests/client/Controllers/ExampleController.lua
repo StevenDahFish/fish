@@ -20,4 +20,4 @@ function ExampleController:Start()
 	warn("ExampleControlle started!")
 end
 
-return fish.controller("ExampleController", ExampleController)
+return fish.controller("ExampleController", ExampleController, script)

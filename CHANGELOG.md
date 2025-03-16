@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2025-03-15
+
+### Added
+- If a service/controller is attempted to be created even though its "@load" declares otherwise, a warning will be outputted
+- Description about the "@load" module functionality for controllers in the documentation
+
+### Changed
+- When creating controllers, you now need to provide its own instance for "@load" warnings to work
+- Controllers in the test folder now provide its own script instance as required in this version
+
+### Fixed
+- "@load" module being required when either .serviceDeep() or .controllerDeep() was being used
+
 ## [1.1.4] - 2025-03-06
 
 ### Fixed
@@ -133,7 +146,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[1.1.4]: https://github.com/StevenDahFish/fish/compare/v1.1.3...HEAD
+[1.1.5]: https://github.com/StevenDahFish/fish/compare/v1.1.4...HEAD
+[1.1.4]: https://github.com/StevenDahFish/fish/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/StevenDahFish/fish/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/StevenDahFish/fish/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/StevenDahFish/fish/compare/v1.1.0...v1.1.1

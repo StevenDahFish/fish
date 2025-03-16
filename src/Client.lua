@@ -40,9 +40,10 @@ end
 
 	@param name string -- The name of the controller
 	@param controllerDef fish.ControllerDef<T>? -- The definition of the controller
+	@param scriptInstance ModuleScript? -- The script instance of the controller
 	@return fish.Controller<T> -- The controller itself
 ]=]
-function Client.controller<T>(name: string, controllerDef: fish.ControllerDef<T>?): fish.Controller<T>
+function Client.controller<T>(name: string, controllerDef: fish.ControllerDef<T>?, scriptInstance: ModuleScript?): fish.Controller<T>
 	if controllerDef == nil or controllers[name] ~= nil then
 		-- Get controller
 		return controllers[name] :: fish.Controller<T>
@@ -51,8 +52,19 @@ function Client.controller<T>(name: string, controllerDef: fish.ControllerDef<T>
 		assert(type(name) == "string", `Name must be a string; got {typeof(controllerDef.Name)}`)
 		assert(#name > 0, "Name must be a non-empty string")
 		assert(type(controllerDef) == "table", `Controller must be a table; got {typeof(controllerDef)}`)
+		assert(typeof(scriptInstance) == "Instance" and scriptInstance:IsA("ModuleScript"), `Script instance must be provided; got type {typeof(scriptInstance)}`)
 		assert(controllers[name] == nil, `Controller "{controllerDef.Name}" already exists`)
 		assert(not started, "Controller cannot be added after calling \"fish.Start()\"")
+
+		if scriptInstance.Parent then
+			local loadRequirementModule = scriptInstance.Parent:FindFirstChild("@load")
+			if loadRequirementModule ~= nil and loadRequirementModule:IsA("ModuleScript") then
+				local shouldLoad = (require)(loadRequirementModule)(scriptInstance)
+				if not shouldLoad then
+					warn(`Controller "{name}" was loaded even though @load indicates not to. Look for any other scripts that are unexpectedly requiring its module.`)
+				end
+			end
+		end
 
 		local controller = controllerDef
 
@@ -70,6 +82,7 @@ end
 
 --[=[
 	Constructs all controllers out of the modules in the children in the given instance.
+	If the parent of a controller module has an "@load" module, it will use it to check whether it should load any controller modules in that folder.
 
 	@param folder Instance -- The instance containing the controller modules
 ]=]
@@ -77,7 +90,7 @@ function Client.controllerDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
 	for _, object in folder:GetDescendants() do
 		if object:IsA("ModuleScript") then
-			if object.Parent ~= nil then
+			if object.Parent ~= nil and object.Name ~= "@load" then
 				local loadRequirementModule = object.Parent:FindFirstChild("@load")
 				if loadRequirementModule ~= nil and loadRequirementModule:IsA("ModuleScript") then
 					local shouldLoad = (require)(loadRequirementModule)(object)

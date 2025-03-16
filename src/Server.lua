@@ -63,6 +63,16 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, script
 		assert(services[name] == nil, `Service "{serviceDef.Name}" already exists`)
 		assert(not started, "Service cannot be added after calling \"fish.Start()\"")
 
+		if scriptInstance.Parent then
+			local loadRequirementModule = scriptInstance.Parent:FindFirstChild("@load")
+			if loadRequirementModule ~= nil and loadRequirementModule:IsA("ModuleScript") then
+				local shouldLoad = (require)(loadRequirementModule)(scriptInstance)
+				if not shouldLoad then
+					warn(`Service "{name}" was loaded even though @load indicates not to. Look for any other scripts that are unexpectedly requiring its module.`)
+				end
+			end
+		end
+
 		local service = serviceDef
 
 		if type(service.Client) ~= "table" then
@@ -93,7 +103,7 @@ function Server.serviceDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
 	table.insert(serviceDirectories, folder)
 	for _, object in folder:GetDescendants() do
-		if object:IsA("ModuleScript") then
+		if object:IsA("ModuleScript") and object.Name ~= "@load" then
 			if object.Parent ~= nil then
 				local loadRequirementModule = object.Parent:FindFirstChild("@load")
 				if loadRequirementModule ~= nil and loadRequirementModule:IsA("ModuleScript") then

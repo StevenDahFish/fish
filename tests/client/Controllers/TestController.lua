@@ -28,4 +28,4 @@ function TestController:Start()
 	end)
 end
 
-return fish.controller("TestController", TestController)
+return fish.controller("TestController", TestController, script)
