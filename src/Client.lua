@@ -54,7 +54,6 @@ function Client.controller<T>(name: string, controllerDef: fish.ControllerDef<T>
 		assert(type(controllerDef) == "table", `Controller must be a table; got {typeof(controllerDef)}`)
 		assert(typeof(scriptInstance) == "Instance" and scriptInstance:IsA("ModuleScript"), `Script instance must be provided; got type {typeof(scriptInstance)}`)
 		assert(controllers[name] == nil, `Controller "{controllerDef.Name}" already exists`)
-		assert(not started, "Controller cannot be added after calling \"fish.Start()\"")
 
 		if scriptInstance.Parent then
 			local loadRequirementModule = scriptInstance.Parent:FindFirstChild("@load")
@@ -65,6 +64,8 @@ function Client.controller<T>(name: string, controllerDef: fish.ControllerDef<T>
 				end
 			end
 		end
+
+		assert(not started, "Controller cannot be added after calling \"fish.Start()\"")
 
 		local controller = controllerDef
 

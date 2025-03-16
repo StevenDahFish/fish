@@ -61,7 +61,6 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, script
 		assert(type(serviceDef) == "table", `Service must be a table; got {typeof(serviceDef)}`)
 		assert(typeof(scriptInstance) == "Instance" and scriptInstance:IsA("ModuleScript"), `Script instance must be provided; got type {typeof(scriptInstance)}`)
 		assert(services[name] == nil, `Service "{serviceDef.Name}" already exists`)
-		assert(not started, "Service cannot be added after calling \"fish.Start()\"")
 
 		if scriptInstance.Parent then
 			local loadRequirementModule = scriptInstance.Parent:FindFirstChild("@load")
@@ -72,6 +71,8 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, script
 				end
 			end
 		end
+
+		assert(not started, "Service cannot be added after calling \"fish.Start()\"")
 
 		local service = serviceDef
 
