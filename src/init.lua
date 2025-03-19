@@ -12,6 +12,7 @@ if RunService:IsClient() and script:FindFirstChild("Server") then
 	end
 
 	-- Initialize server-like structure
+	-- TODO: Don't hardcode this, account that if they put it in somewhere other than ServerStorage or ServerScriptService, it'll delete the existing script there first
 	local serverFolder = Instance.new("Folder", ServerStorage)
 	serverFolder.Name = "Server"
 	local services = Instance.new("Folder", serverFolder)

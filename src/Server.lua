@@ -103,6 +103,8 @@ end
 function Server.serviceDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
 	table.insert(serviceDirectories, folder)
+	
+	local requirePromises = {}
 	for _, object in folder:GetDescendants() do
 		if object:IsA("ModuleScript") and object.Name ~= "@load" then
 			if object.Parent ~= nil then
@@ -114,18 +116,30 @@ function Server.serviceDeep(folder: Instance)
 					end
 				end
 			end
-			(require)(object)
+			table.insert(requirePromises, Promise.try(require, object):timeout(5, "SERVICE_REQUIRE_TIMEOUT"):catch(function(err)
+				if err == "SERVICE_REQUIRE_TIMEOUT" then
+					warn(`Service "{object.Name}" took too long to be required, look for an unresolvable dependency.`)
+				else
+					warn(err)
+				end
+			end))
 		end
 	end
+	Promise.all(requirePromises):await()
 end
 
 --[=[
 	Returns a marker that will transform into a RemoteSignal once all services are started.
 
+	@param unreliable boolean? -- Whether this should be an unreliable RemoteSignal
 	@return RemoteSignal
 ]=]
-function Server.signal(): DependencyTypes.RemoteSignal
-	return SIGNAL_MARKER
+function Server.signal(unreliable: boolean?): DependencyTypes.RemoteSignal
+	if unreliable == true then
+		return UNRELIABLE_SIGNAL_MARKER
+	else
+		return SIGNAL_MARKER
+	end
 end
 
 --[=[

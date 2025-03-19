@@ -89,6 +89,8 @@ end
 ]=]
 function Client.controllerDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
+	
+	local requirePromises = {}
 	for _, object in folder:GetDescendants() do
 		if object:IsA("ModuleScript") then
 			if object.Parent ~= nil and object.Name ~= "@load" then
@@ -100,9 +102,16 @@ function Client.controllerDeep(folder: Instance)
 					end
 				end
 			end
-			(require)(object)
+			table.insert(requirePromises, Promise.try(require, object):timeout(5, "CONTROLLER_REQUIRE_TIMEOUT"):catch(function(err)
+				if err == "CONTROLLER_REQUIRE_TIMEOUT" then
+					warn(`Controller "{object.Name}" took too long to be required, look for an unresolvable dependency.`)
+				else
+					warn(err)
+				end
+			end))
 		end
 	end
+	Promise.all(requirePromises):await()
 end
 
 --[=[
@@ -225,6 +234,7 @@ if RunService:IsClient() then
 	local ClientService: ModuleScript = script.Parent.ClientService
 	local serviceFolders: {Folder} = script.Parent.Services:GetChildren()
 	for _, serviceFolder in serviceFolders do
+		-- TODO: Don't hardcode this, account that if they put it in somewhere other than ServerStorage or ServerScriptService, it'll delete the existing script there first
 		local currentDirectory = ServerStorage.Server.Services
 		if serviceFolder:GetAttribute("Structure") ~= nil then
 			local structure = serviceFolder:GetAttribute("Structure") :: string
