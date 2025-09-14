@@ -1,6 +1,6 @@
 ---
 title: Snippets
-sidebar_position: 6
+sidebar_position: 7
 ---
 
 These snippets can help speed up workflow by allowing you to easily define entire services/controllers or components of these and focus on writing code! These are written for [VSCode](https://code.visualstudio.com/) and are usable in `File > Preferences > Configure Snippets > luau.json`.
@@ -10,6 +10,7 @@ These snippets can help speed up workflow by allowing you to easily define entir
 * [`fishclient`](#fish-client) - Initializes a controller
 * [`ff`](#fish-function) - Creates a public function
 * [`ffc`](#fish-function-client) - Create a public client function for a service
+* [`ffcs`](#fish-function-client-signal) - Create a public client function signal for a service
 * [`fss`](#fish-service-reference-server) - Creates a service reference for the server
 * [`fsc`](#fish-service-reference-client) - Creates a service reference for the client
 * [`fc`](#fish-controller-reference) - Creates a controller reference
@@ -34,13 +35,13 @@ Initializes a service
 		"-- Core",
 		"local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server",
 		"local t = require(ReplicatedStorage.Packages.t)",
-		"local $TM_FILENAME_BASE = {Client = {}}",
+		"local $TM_FILENAME_BASE = {Client = {Signal = {}}}",
 		"",
 		"-- Dependencies",
 		"local Promise = require(ReplicatedStorage.Packages.Promise)",
 		"",
 		"-- Functions",
-		"function $TM_FILENAME_BASE:Start()",
+		"function $TM_FILENAME_BASE.Start(self: self)",
 		"\t$0",
 		"end",
 		"",
@@ -49,8 +50,10 @@ Initializes a service
 		"\t",
 		"}",
 		"",
-		"type server = typeof($TM_FILENAME_BASE)",
+		"type self = server",
+		"type server = {Start: never} & typeof($TM_FILENAME_BASE)",
 		"type sclient = typeof($TM_FILENAME_BASE.Client)",
+		"type sclientsignal = typeof($TM_FILENAME_BASE.Client.Signal)",
 		"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
 	],
 	"description": "Template for fish framework server"
@@ -67,13 +70,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- Core
 local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server
 local t = require(ReplicatedStorage.Packages.t)
-local MyService = {Client = {}}
+local MyService = {Client = {Signal = {}}}
 
 -- Dependencies
 local Promise = require(ReplicatedStorage.Packages.Promise)
 
 -- Functions
-function MyService:Start()
+function MyService.Start(self: self)
 	
 end
 
@@ -82,8 +85,10 @@ export type client = {
 	
 }
 
-type server = typeof(MyService)
+type self = server
+type server = {Start: never} & typeof(MyService)
 type sclient = typeof(MyService.Client)
+type sclientsignal = typeof(MyService.Client.Signal)
 return fish.service("MyService", MyService, script)
 ```
 </details>
@@ -108,10 +113,11 @@ Initializes a controller
 		"local $TM_FILENAME_BASE = {}",
 		"",
 		"-- Functions",
-		"function $TM_FILENAME_BASE:Start()",
+		"function $TM_FILENAME_BASE.Start(self: self)",
 		"\t$0",
 		"end",
 		"",
+		"type self = {Start: never} & typeof($TM_FILENAME_BASE)",
 		"return fish.controller(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
 	],
 	"description": "Template for fish framework client"
@@ -131,10 +137,11 @@ local fish = require(ReplicatedStorage.Packages.fish).Client
 local MyController = {}
 
 -- Functions
-function MyController:Start()
+function MyController.Start(self: self)
 	
 end
 
+type self = {Start: never} & typeof(MyController)
 return fish.controller("MyController", MyController, script)
 ```
 </details>
@@ -150,7 +157,7 @@ Creates a public function
 "fish function": {
 	"prefix": "ff",
 	"body": [
-		"function $TM_FILENAME_BASE:$1($2)",
+		"function $TM_FILENAME_BASE.$1(self: self$2)",
 		"\t$0",
 		"end"
 	],
@@ -162,7 +169,7 @@ Creates a public function
 <summary>Output</summary>
 
 ```lua
-function MyService:Function()
+function MyService.Function(self: self)
 	
 end
 ```
@@ -192,6 +199,35 @@ Create a public client function for a service
 
 ```lua
 function MyService.Client.Function(self: fish.self<sclient, server>)
+	
+end
+```
+</details>
+
+---------------------------------
+
+### fish function client signal
+Create a public client function signal for a service
+<details>
+<summary>Definition</summary>
+
+```json
+"fish function client signal": {
+	"prefix": "ffcs",
+	"body": [
+		"function $TM_FILENAME_BASE.Client.Signal.$1(self: fish.self<sclientsignal, server>$2)",
+		"\t$0",
+		"end",
+	],
+	"description": "Snippet to create a public client function signal for a service"
+}
+```
+</details>
+<details>
+<summary>Output</summary>
+
+```lua
+function MyService.Client.Signal.Function(self: fish.self<sclientsignal, server>)
 	
 end
 ```
@@ -415,13 +451,13 @@ All snippets in one
 			"-- Core",
 			"local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server",
 			"local t = require(ReplicatedStorage.Packages.t)",
-			"local $TM_FILENAME_BASE = {Client = {}}",
+			"local $TM_FILENAME_BASE = {Client = {Signal = {}}}",
 			"",
 			"-- Dependencies",
 			"local Promise = require(ReplicatedStorage.Packages.Promise)",
 			"",
 			"-- Functions",
-			"function $TM_FILENAME_BASE:Start()",
+			"function $TM_FILENAME_BASE.Start(self: self)",
 			"\t$0",
 			"end",
 			"",
@@ -430,8 +466,10 @@ All snippets in one
 			"\t",
 			"}",
 			"",
-			"type server = typeof($TM_FILENAME_BASE)",
+			"type self = server",
+			"type server = {Start: never} & typeof($TM_FILENAME_BASE)",
 			"type sclient = typeof($TM_FILENAME_BASE.Client)",
+			"type sclientsignal = typeof($TM_FILENAME_BASE.Client.Signal)",
 			"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
 		],
 		"description": "Template for fish framework server"
@@ -448,10 +486,11 @@ All snippets in one
 			"local $TM_FILENAME_BASE = {}",
 			"",
 			"-- Functions",
-			"function $TM_FILENAME_BASE:Start()",
+			"function $TM_FILENAME_BASE.Start(self: self)",
 			"\t$0",
 			"end",
 			"",
+			"type self = {Start: never} & typeof($TM_FILENAME_BASE)",
 			"return fish.controller(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
 		],
 		"description": "Template for fish framework client"
@@ -459,7 +498,7 @@ All snippets in one
 	"fish function": {
 		"prefix": "ff",
 		"body": [
-			"function $TM_FILENAME_BASE:$1($2)",
+			"function $TM_FILENAME_BASE.$1(self: self$2)",
 			"\t$0",
 			"end"
 		],
@@ -473,6 +512,15 @@ All snippets in one
 			"end"
 		],
 		"description": "Snippet to create a public client function for a service"
+	},
+	"fish function client signal": {
+		"prefix": "ffcs",
+		"body": [
+			"function $TM_FILENAME_BASE.Client.Signal.$1(self: fish.self<sclientsignal, server>$2)",
+			"\t$0",
+			"end",
+		],
+		"description": "Snippet to create a public client function signal for a service"
 	},
 	"fish service reference server": {
 		"prefix": "fss",

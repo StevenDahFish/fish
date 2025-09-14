@@ -3,24 +3,29 @@ title: Controllers
 sidebar_position: 4
 ---
 
+## Creating a Controller
 A controller is a client module to handle an aspect of your game. Start by importing the client section of fish and creating an empty table to represent your controller. It is not necessary to import it in the same way that the server had to be imported, but you are able to if it is easier to keep it consistent.
 ```lua
 local fish = require(ReplicatedStorage.Packages.fish).Client
 local MyController = {}
 ```
-Similar to services, a start function should be defined as apart of the controller table which gets ran on framework start.
+Similar to services, a start function should be defined as apart of the controller table which gets ran on framework start. Define it with dot notation and pass in the `self` type to allow full autocomplete. (*this type is defined in the next code block*)
 ```lua
-function MyController:Start()
+function MyController.Start(self: self)
 	print("MyController has been started!")
 end
 ```
 :::note
 **Controllers are loaded in an abitrary order**. Ensure when referencing other controllers, that it can run safely if it doesn't start at the same time. Using any public functions should be safe, assuming that any logic done inside these functions don't depend on its Start function running first. It's also convention to run most code in the Start function and *not* outside in the global context.
 :::
-Finally, return the controller by defining it with fish.
+Finally, define the `self` type and return the controller by defining it with fish.
 ```lua
+type self = {Start: never} & typeof(MyController)
 return fish.controller("MyController", MyController, script)
 ```
+:::tip Snippet
+**[fishclient](snippets/#fish-client) (fish client)**<br/>Initializes a controller
+:::
 ## Public functions & signals
 These work the same way they do in services, see the [documentation here](services#public-functions).
 
@@ -31,6 +36,9 @@ To import a service, you'll want to simply require it in the location that you s
 ```lua
 local MyService = require(ServerStorage.Server.Services.MyService); local MyService: MyService.client = MyService
 ```
+:::tip Snippet
+**[fsc](snippets/#fish-service-reference-client) (fish service reference client)**<br/>Creates a service reference for the client
+:::
 ## Full Example
 A few examples involving functions, signals, and properties are shown below.
 ```lua

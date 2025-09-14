@@ -15,13 +15,17 @@ export type ServiceDef<T> = T & {
 }
 
 --[=[
-	@type Service<T> T & { Client: { Server: T, [any]: any }, Start: (any) -> any, [any]: any }
+	@type Service<T> T & { Client: { Server: T, Signal: { Server: T, [any]: any }, [any]: any }, Start: (any) -> any, [any]: any }
 	@within Types
 	A service as seen in the server context
 ]=]
 export type Service<T> = T & {
 	Client: {
 		Server: T,
+		Signal: {
+			Server: T,
+			[any]: any
+		},
 		[any]: any 
 	},
 	Start: (any) -> any,

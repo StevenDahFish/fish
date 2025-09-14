@@ -4,8 +4,10 @@
 	Contains the client functionality of fish framework
 ]=]
 
+local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
+local StarterPlayer = game:GetService("StarterPlayer")
 local Client = {}
 
 --// Dependencies
@@ -20,6 +22,19 @@ local services: {[string]: fish.ServiceRef} = {}
 local started = false
 local isStarting = false
 local startedSignal = Signal.new()
+local generatedObfuscationString
+
+--[=[
+	@ignore
+	@within Client
+	Generates a string used to obfuscate names.
+]=]
+local function generateObfuscationString(): string
+	if generatedObfuscationString == nil then
+		generatedObfuscationString = HttpService:GenerateGUID(false)
+	end
+	return generatedObfuscationString
+end
 
 --[=[
 	@ignore
@@ -28,7 +43,21 @@ local startedSignal = Signal.new()
 ]=]
 local function buildService(serviceDefinition: Folder): fish.ServiceRef
 	local comm = ClientComm.new(serviceDefinition.Parent :: Folder, true, serviceDefinition.Name) :: any
-	local service = comm:BuildObject()
+	local service = comm:BuildObject({function(args)
+		if args[1] == "__fish_caught_error" then
+			if args[2] == "__fish_unknown_error" then
+				if RunService:IsStudio() then
+					error("An error has occurred on the server! (fish framework does not send error messages to the client while running in Studio)", 0)
+				else
+					error("Unknown error", 0)
+				end
+			else
+				error(args[2], 0)
+			end
+		end
+		return true
+		-- (Args) -> (boolean, ...any)
+	end})
 
 	services[serviceDefinition.Name] = service
 	return service
@@ -75,6 +104,9 @@ function Client.controller<T>(name: string, controllerDef: fish.ControllerDef<T>
 		if type(controller.Start) ~= "function" then
 			controller.Start = function() end
 		end
+		controller.__fishMetadata = {
+			Instance = scriptInstance
+		}
 
 		controllers[name] = controller :: fish.Controller<T>
 		return controllers[name]
@@ -154,9 +186,10 @@ end
 	Starts all created controllers.
 	Controllers cannot be created after called.
 
+	@param obfuscate boolean? -- Whether to obfuscate controller and service names
 	@return Promise.TypedPromise<nil> -- Promise that resolves when started
 ]=]
-function Client.start(): Promise.TypedPromise<nil>
+function Client.start(obfuscate: boolean?): Promise.TypedPromise<nil>
 	-- If starting
 	if started then
 		return Promise.reject("fish already started")
@@ -183,6 +216,37 @@ function Client.start(): Promise.TypedPromise<nil>
 		end
 		for _, controller in noPriority do
 			table.insert(sortedControllers, controller)
+		end
+
+		-- Obfuscate
+		if obfuscate and not RunService:IsStudio() then
+			local instancesToDestroy = {script.Parent.Services}
+			for _, instance in script.Parent.Services:GetDescendants() do
+				if instance:IsA("RemoteEvent") or instance:IsA("RemoteFunction") then
+					instance.Name = generateObfuscationString()
+					instance.Parent = game
+				else
+					table.insert(instancesToDestroy, instance)
+				end
+			end
+			for _, instance in instancesToDestroy do
+				instance:Destroy()
+			end
+			ServerStorage:ClearAllChildren()
+			table.clear(services)
+			table.freeze(services)
+			
+			for _, controller in controllers do
+				controller.__fishMetadata.Instance.Name = generateObfuscationString()
+				controller.__fishMetadata.Instance.Parent = game
+				controller.__fishMetadata = nil
+			end
+			local client = StarterPlayer:WaitForChild("StarterPlayerScripts"):FindFirstChild("Client")
+			if client ~= nil then
+				client:Destroy()
+			end
+			table.clear(controllers)
+			table.freeze(controllers)
 		end
 
 		return Promise.new(function(resolve)

@@ -34,11 +34,14 @@ return fish.service("ServiceA", ServiceA, script)
 -- Core
 local ServiceB = {}
 
-function ServiceB:Start()
+function ServiceB.Start()
     local ServiceA = require(script.Parent.ServiceA) :: any -- casting type "any"
+	-- this will not work if obfuscation is enabled! (see Advanced Features page in documentation)
 end
 
 return fish.service("ServiceB", ServiceB, script)
 ```
 
 ![A flowchart showcasing how cyclic dependencies cause an issue.](cyclic_dependency.png)
+## Acknowledgements
+Visit the [acknowledgements](https://stevendahfish.github.io/fish/docs/acknowledgements) page here.

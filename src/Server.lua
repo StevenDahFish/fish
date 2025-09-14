@@ -3,6 +3,8 @@
 
 	Contains the server functionality of fish framework
 ]=]
+
+local RunService = game:GetService("RunService")
 local Server = {}
 
 --// Dependencies
@@ -81,6 +83,9 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, script
 		end
 		if service.Client.Server ~= service then
 			service.Client.Server = service
+		end
+		if type(service.Client.Signal) == "table" then
+			service.Client.Signal.Server = service
 		end
 		if type(service.Start) ~= "function" then
 			service.Start = function() end
@@ -173,7 +178,7 @@ function Server.start(): Promise.TypedPromise<nil>
 			local function wrapFunction(func)
 				local mutex = Mutex.new()
 				return function(self, player, ...)
-					-- Create a local copy of `self` and inject `player` into it
+					-- Create a local copy of "self" and inject "player" into it
 					local localSelf = {}
 					for k, v in self do
 						localSelf[k] = v
@@ -195,9 +200,42 @@ function Server.start(): Promise.TypedPromise<nil>
 							return unpack(results)
 						end
 					}
-					
-					-- Call the original function with the modified `localSelf`
-					return func(localSelf, ...)
+
+					-- Implement confirm and inject it
+					local returnValues = {"__fish_caught_error", "__fish_unknown_error"}
+					localSelf.confirm = function(value: any, ...: any)
+						if not value then
+							if coroutine.isyieldable() then
+								returnValues = {}
+								task.defer(coroutine.close, coroutine.running())
+								coroutine.yield()
+							else
+								error("Unable to silently fail, current thread is not yieldable")
+							end
+						end
+					end
+
+					-- Call the original function with the modified "localSelf"
+					local args = {...}
+					local thread = task.spawn(function()
+						if RunService:IsStudio() then
+							returnValues = {func(localSelf, unpack(args))}
+						else
+							local success, err = pcall(function()
+								returnValues = {func(localSelf, table.unpack(args))}
+							end)
+							if not success then
+								returnValues[2] = err
+								error(err, 2)
+							end
+						end
+					end)
+					if coroutine.status(thread) == "dead" then
+						return unpack(returnValues)
+					else
+						repeat task.wait() until coroutine.status(thread) == "dead"
+						return unpack(returnValues)
+					end
 				end
 			end
 
@@ -207,12 +245,30 @@ function Server.start(): Promise.TypedPromise<nil>
 					local client = service.Client :: {[any]: any}
 
 					local hasPublicComms = false
-					for k in client do
-						if k ~= "Server" then
+					if type(client.Signal) == "table" then
+						for k in client.Signal do
+							if k == "Server" then
+								continue
+							end
+
 							hasPublicComms = true
 							break
 						end
 					end
+					if not hasPublicComms then
+						for k in client do
+							if k == "Server" then
+								continue
+							end
+							if k == "Signal" and type(client.Signal) == "table" then
+								continue
+							end
+
+							hasPublicComms = true
+							break
+						end
+					end
+					
 					if not hasPublicComms then
 						service:Start()
 						return
@@ -229,9 +285,18 @@ function Server.start(): Promise.TypedPromise<nil>
 							client[k] = comm:CreateSignal(k, true)
 						elseif type(v) == "table" and v[1] == PROPERTY_MARKER then
 							client[k] = comm:CreateProperty(k, v[2])
+						elseif k == "Signal" and type(v) == "table" then
+							for sk, sv in v do
+								if type(sv) == "function" then
+									local wrappedFunction = wrapFunction(sv)
+									v[sk] = comm:CreateSignal(sk, false)
+									v[sk]:Connect(function(...)
+										return wrappedFunction(v, ...)
+									end)
+								end
+							end
 						end
 					end
-					service.Client = client
 					
 					-- Emulate structure from construction
 					local serviceFolder: Folder = (servicesFolder :: any)[name]

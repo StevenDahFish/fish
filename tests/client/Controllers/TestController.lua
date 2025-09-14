@@ -15,7 +15,7 @@ local ExampleController = require(script.Parent.ExampleController)
 --// Variables
 
 --// Functions
-function TestController:Start()
+function TestController.Start(self: self)
 	warn("TestController started!")
 	ExampleController:OtherFunction()
 	TestService:SayHelloPublic("yes"):andThen(function(boolean)
@@ -24,8 +24,10 @@ function TestController:Start()
 	end)
 	TestService.SayHello:Connect(function()
 		print("I was told to say hello!")
-		TestService:SayHelloPublic(1 :: any) -- Invalid type
+		TestService:SayHelloPublic(1 :: any) -- Invalid type, this would cause a silent fail on the server!
 	end)
+	TestService.SayNumber:Fire(123)
 end
 
+type self = {Start: never} & typeof(ExampleController)
 return fish.controller("TestController", TestController, script)

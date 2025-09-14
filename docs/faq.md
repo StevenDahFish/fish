@@ -1,6 +1,6 @@
 ---
 title: FAQ
-sidebar_position: 7
+sidebar_position: 8
 ---
 
 ### How to use wally-package-types?
@@ -55,8 +55,9 @@ return fish.service("ServiceA", ServiceA, script)
 -- Core
 local ServiceB = {}
 
-function ServiceB:Start()
+function ServiceB.Start()
 	local ServiceA = require(script.Parent.ServiceA) :: any -- casting type "any"
+	-- this will not work if obfuscation is enabled! (see Advanced Features page)
 end
 
 return fish.service("ServiceB", ServiceB, script)

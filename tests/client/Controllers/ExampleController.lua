@@ -12,12 +12,13 @@ local ExampleController = {}
 --// Variables
 
 --// Functions
-function ExampleController:OtherFunction()
+function ExampleController.OtherFunction(self: self)
 	print("Used public OtherFunction()!")
 end
 
-function ExampleController:Start()
-	warn("ExampleControlle started!")
+function ExampleController.Start(self: self)
+	warn("ExampleController started!")
 end
 
+type self = {Start: never} & typeof(ExampleController)
 return fish.controller("ExampleController", ExampleController, script)

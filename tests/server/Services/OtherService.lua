@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 --// Core
 local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server
-local OtherService = {Client = {}}
+local OtherService = {Client = {Signal = {}}}
 
 --// Dependencies
 
@@ -14,11 +14,11 @@ local OtherService = {Client = {}}
 --// Client Events
 
 --// Functions
-function OtherService:SayHello()
+function OtherService.SayHello(self: server)
 	print("Hello from OtherService!")
 end
 
-function OtherService:Start()
+function OtherService.Start(self: server)
 	warn("OtherService started!")
 end
 
@@ -27,6 +27,7 @@ export type client = {
 	
 } & typeof(OtherService.Client)
 
-type server = typeof(OtherService)
+type self = server
+type server = {Start: never} & typeof(OtherService)
 type sclient = typeof(OtherService.Client)
 return fish.service("OtherService", OtherService, script)

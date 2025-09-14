@@ -6,7 +6,7 @@ local ServerStorage = game:GetService("ServerStorage")
 --// Core
 local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server
 local t = require(ReplicatedStorage.Packages.t)
-local TestService = {Client = {}}
+local TestService = {Client = {Signal = {}}}
 
 --// Dependencies
 local Promise = require(ReplicatedStorage.Packages.Promise)
@@ -22,27 +22,37 @@ TestService.Client.SayHello = fish.signal()
 
 --// Functions
 function TestService.Client.SayHelloPublic(self: fish.self<sclient, server>, yes: string): boolean
-	assert(t.tuple(t.string)(yes))
 	warn("== SayHelloPublic called == ")
+	self.confirm(t.string(yes)) -- assert, but silently fails instead of throwing an error
 	print("Hello public!")
 	print("from:", self.Player)
 	return true
 end
 
-function TestService:Start()
+function TestService.Client.Signal.SayNumber(self: fish.self<sclientsignal, server>, number: number)
+	warn("== Signal.SayNumber called == ")
+	self.confirm(t.number(number))
+	print(number)
+	print("from:", self.Player)
+end
+
+function TestService.Start(self: self)
 	warn("TestService started!")
 	OtherService:SayHello()
 	Players.PlayerAdded:Connect(function(player)
-		TestService.Client.SayHello:Fire(player)
+		self.Client.SayHello:Fire(player)
 	end)
 end
 
 --// Mapping
 export type client = {
 	SayHello: fish.ClientRemoteSignal,
-	SayHelloPublic: (self: any, yes: string) -> Promise.TypedPromise<boolean>
+	SayHelloPublic: (self: any, yes: string) -> Promise.TypedPromise<boolean>,
+	SayNumber: fish.ClientRemoteSignal
 }
 
-type server = typeof(TestService)
+type self = server
+type server = {Start: never} & typeof(TestService)
 type sclient = typeof(TestService.Client)
+type sclientsignal = typeof(TestService.Client.Signal)
 return fish.service("TestService", TestService, script)

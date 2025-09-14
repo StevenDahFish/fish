@@ -14,4 +14,4 @@ See the [Getting Started](getting-started) guide to start using fish.
 * **Intellisense** knows everything and is able to understand everything about a service or controller, allowing you to autocomplete anything.
 * **Full type support** for everything, including client-server communication with [Promises](https://eryn.io/roblox-lua-promise/api/Promise).
 * **Structuring** is unreasonably simple and allows you to manage your game easily with little conflict.
-* **Features** you didn't even knew you needed are integrated by default such as [Mutex](https://en.wikipedia.org/wiki/Mutual_exclusion) or AdvancedLogger (in the future).
+* **Features** you didn't even knew you needed are integrated by default such as [Mutex](https://en.wikipedia.org/wiki/Mutual_exclusion).

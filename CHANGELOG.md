@@ -5,12 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.6]
 
 ### Added
 - Documentation for fish
-- If a service/controller takes more than 5 seconds to be required, a warning will be outputted assuming that it's waiting on something for too long.
+- Client.Signal table in services as a different way to create a signal and listen to it
+- self.confirm() in public service functions as a drop-in replacement for assert(), but silently fails instead of throwing an error
+- Option to obfuscate service & controller names on the client during runtime
+- If a service/controller takes more than 5 seconds to be required, a warning will be outputted assuming that it's waiting on something for too long
 - Unreliable signals are able to be created now
+- Acknowledgements to the documentation page & linked in README
+
+### Changed
+- Made all functions in services and controllers explicitly define self for better autocompletion
+- Due to limitations of how self.confirm() was implemented, errors in services will no longer be sent to the client while playtesting in Studio
 
 ## [1.1.5] - 2025-03-15
 
@@ -153,7 +161,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.1.5...HEAD
+[unreleased]: https://github.com/StevenDahFish/fish/compare/v1.1.6...HEAD
+[1.1.6]: https://github.com/StevenDahFish/fish/compare/v1.1.5...v1.1.6
 [1.1.5]: https://github.com/StevenDahFish/fish/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/StevenDahFish/fish/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/StevenDahFish/fish/compare/v1.1.2...v1.1.3

@@ -15,7 +15,7 @@ This video has been created to help with every aspect of the process for setting
 
 This framework depends on typing, and a lot of design decisions have been made with using types in mind. If you do not see the need to use types, it's recommended to use another framework that would match your goals.
 
-This documentation has been written with the assumption that you are using [VSCode](https://code.visualstudio.com/) with the [Luau LSP](https://marketplace.visualstudio.com/items?itemName=JohnnyMorganz.luau-lsp) extension in mind.
+This documentation has been written with the assumption that you are using [VSCode](https://code.visualstudio.com/) with the [Luau LSP](https://marketplace.visualstudio.com/items?itemName=JohnnyMorganz.luau-lsp) extension.
 
 ## Installation
 ### Wally & Rojo workflow

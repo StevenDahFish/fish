@@ -20,7 +20,7 @@ if RunService:IsClient() and script:FindFirstChild("Server") then
 end
 
 --[=[
-	@type self<C,S> C & { Player: Player, Mutex: { Lock: (self) -> (), Unlock: (self) -> (), Wrap: (self, (...any) -> (), ...any) -> (boolean, ...any) }, Server: S, [any]: any }
+	@type self<C,S> C & { Player: Player, Server: S, Mutex: { Lock: (self) -> (), Unlock: (self) -> (), Wrap: (self, (...any) -> (), ...any) -> (boolean, ...any) }, confirm: (value: any) -> (), [any]: any }
 	@within Types
 	Type used to describe the `self` object in Client functions
 	```lua
@@ -38,17 +38,22 @@ end
 			return parameter
 		end, 1)
 		print(success, result) --> Output: true, 1
+
+		--> Silent assert (stops the current thread from continuing, equivalent to a return statement)
+		self.confirm(success)
+		print("This print statement won't run if success == false!")
 	end
 	```
 ]=]
 export type self<C, S> = C & {
 	Player: Player,
+	Server: S,
 	Mutex: {
 		Lock: (self: any) -> (),
 		Unlock: (self: any) -> (),
 		Wrap: (self: any, (...any) -> (), ...any) -> (boolean, ...any)
 	},
-	Server: S,
+	confirm: (value: any) -> (),
 	[any]: any
 };
 
