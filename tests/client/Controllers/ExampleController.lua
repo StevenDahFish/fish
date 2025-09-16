@@ -20,5 +20,5 @@ function ExampleController.Start(self: self)
 	warn("ExampleController started!")
 end
 
-type self = {Start: never} & typeof(ExampleController)
+type self = typeof(ExampleController)
 return fish.controller("ExampleController", ExampleController, script)

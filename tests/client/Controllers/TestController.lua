@@ -29,5 +29,5 @@ function TestController.Start(self: self)
 	TestService.SayNumber:Fire(123)
 end
 
-type self = {Start: never} & typeof(ExampleController)
+type self = typeof(ExampleController)
 return fish.controller("TestController", TestController, script)

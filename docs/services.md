@@ -39,7 +39,7 @@ end
 export type client = {}
 
 type self = server
-type server = {Start: never} & typeof(MyService)
+type server = typeof(MyService)
 type sclient = typeof(MyService.Client)
 type sclientsignal = typeof(MyService.Client.Signal)
 return fish.service("MyService", MyService, script)
@@ -299,7 +299,7 @@ export type client = {
 }
 
 type self = server
-type server = {Start: never} & typeof(PlayerService)
+type server = typeof(PlayerService)
 type sclient = typeof(PlayerService.Client)
 type sclientsignal = typeof(PlayerService.Client.Signal)
 return fish.service("PlayerService", PlayerService, script)

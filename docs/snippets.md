@@ -51,7 +51,7 @@ Initializes a service
 		"}",
 		"",
 		"type self = server",
-		"type server = {Start: never} & typeof($TM_FILENAME_BASE)",
+		"type server = typeof($TM_FILENAME_BASE)",
 		"type sclient = typeof($TM_FILENAME_BASE.Client)",
 		"type sclientsignal = typeof($TM_FILENAME_BASE.Client.Signal)",
 		"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
@@ -86,7 +86,7 @@ export type client = {
 }
 
 type self = server
-type server = {Start: never} & typeof(MyService)
+type server = typeof(MyService)
 type sclient = typeof(MyService.Client)
 type sclientsignal = typeof(MyService.Client.Signal)
 return fish.service("MyService", MyService, script)
@@ -117,7 +117,7 @@ Initializes a controller
 		"\t$0",
 		"end",
 		"",
-		"type self = {Start: never} & typeof($TM_FILENAME_BASE)",
+		"type self = & typeof($TM_FILENAME_BASE)",
 		"return fish.controller(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
 	],
 	"description": "Template for fish framework client"
@@ -141,7 +141,7 @@ function MyController.Start(self: self)
 	
 end
 
-type self = {Start: never} & typeof(MyController)
+type self = typeof(MyController)
 return fish.controller("MyController", MyController, script)
 ```
 </details>
@@ -467,7 +467,7 @@ All snippets in one
 			"}",
 			"",
 			"type self = server",
-			"type server = {Start: never} & typeof($TM_FILENAME_BASE)",
+			"type server = typeof($TM_FILENAME_BASE)",
 			"type sclient = typeof($TM_FILENAME_BASE.Client)",
 			"type sclientsignal = typeof($TM_FILENAME_BASE.Client.Signal)",
 			"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
@@ -490,7 +490,7 @@ All snippets in one
 			"\t$0",
 			"end",
 			"",
-			"type self = {Start: never} & typeof($TM_FILENAME_BASE)",
+			"type self = typeof($TM_FILENAME_BASE)",
 			"return fish.controller(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
 		],
 		"description": "Template for fish framework client"

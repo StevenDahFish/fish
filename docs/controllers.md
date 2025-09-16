@@ -20,7 +20,7 @@ end
 :::
 Finally, define the `self` type and return the controller by defining it with fish.
 ```lua
-type self = {Start: never} & typeof(MyController)
+type self = typeof(MyController)
 return fish.controller("MyController", MyController, script)
 ```
 :::tip Snippet
