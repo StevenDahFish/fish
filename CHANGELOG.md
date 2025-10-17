@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- self.confirm() now returns the value passed to it, similar to assert()
+
 ### Fixed
 - Type definition "{Start: never}" causing inability to reference service/controller using variable
 

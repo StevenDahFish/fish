@@ -53,7 +53,7 @@ export type self<C, S> = C & {
 		Unlock: (self: any) -> (),
 		Wrap: (self: any, (...any) -> (), ...any) -> (boolean, ...any)
 	},
-	confirm: (value: any) -> (),
+	confirm: <T>(value: T) -> T,
 	[any]: any
 };
 

@@ -203,7 +203,7 @@ function Server.start(): Promise.TypedPromise<nil>
 
 					-- Implement confirm and inject it
 					local returnValues = {"__fish_caught_error", "__fish_unknown_error"}
-					localSelf.confirm = function(value: any, ...: any)
+					localSelf.confirm = function<T>(value: T)
 						if not value then
 							if coroutine.isyieldable() then
 								returnValues = {}
@@ -213,6 +213,7 @@ function Server.start(): Promise.TypedPromise<nil>
 								error("Unable to silently fail, current thread is not yieldable")
 							end
 						end
+						return value
 					end
 
 					-- Call the original function with the modified "localSelf"
@@ -222,7 +223,7 @@ function Server.start(): Promise.TypedPromise<nil>
 							returnValues = {func(localSelf, unpack(args))}
 						else
 							local success, err = pcall(function()
-								returnValues = {func(localSelf, table.unpack(args))}
+								returnValues = {func(localSelf, unpack(args))}
 							end)
 							if not success then
 								returnValues[2] = err
