@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - self.confirm() now returns the value passed to it, similar to assert()
+- Clarified error message on client when obfuscation is enabled
 
 ### Fixed
 - Type definition "{Start: never}" causing inability to reference service/controller using variable

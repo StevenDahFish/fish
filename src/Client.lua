@@ -47,7 +47,7 @@ local function buildService(serviceDefinition: Folder): fish.ServiceRef
 		if args[1] == "__fish_caught_error" then
 			if args[2] == "__fish_unknown_error" then
 				if RunService:IsStudio() then
-					error("An error has occurred on the server! (fish framework does not send error messages to the client while running in Studio)", 0)
+					error("An error has occurred on the server! (fish framework does not send error messages to the client while running in Studio with obfuscation enabled)", 0)
 				else
 					error("Unknown error", 0)
 				end
