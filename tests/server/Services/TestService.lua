@@ -21,7 +21,7 @@ local OtherService = require(script.Parent.OtherService)
 TestService.Client.SayHello = fish.signal()
 
 --// Functions
-function TestService.Client.SayHelloPublic(self: fish.self<sclient, server>, yes: string): boolean
+function TestService.Client.SayHelloPublic(self: fish.self<sclient, self>, yes: string): boolean
 	warn("== SayHelloPublic called == ")
 	self.confirm(t.string(yes)) -- assert, but silently fails instead of throwing an error
 	print("Hello public!")
@@ -29,7 +29,7 @@ function TestService.Client.SayHelloPublic(self: fish.self<sclient, server>, yes
 	return true
 end
 
-function TestService.Client.Signal.SayNumber(self: fish.self<sclientsignal, server>, number: number)
+function TestService.Client.Signal.SayNumber(self: fish.self<sclientsignal, self>, number: number)
 	warn("== Signal.SayNumber called == ")
 	self.confirm(t.number(number))
 	print(number)
@@ -51,8 +51,7 @@ export type client = {
 	SayNumber: fish.ClientRemoteSignal
 }
 
-type self = server
-type server = typeof(TestService)
+type self = typeof(TestService)
 type sclient = typeof(TestService.Client)
 type sclientsignal = typeof(TestService.Client.Signal)
 return fish.service("TestService", TestService, script)

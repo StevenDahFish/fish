@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Changed all references to "server" type in services to use "self" instead due to context being missed
+
 ## [1.1.7]
 
 ### Changed
@@ -170,7 +175,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[1.1.7]: https://github.com/StevenDahFish/fish/compare/v1.1.6...HEAD
+[Unreleased]: https://github.com/StevenDahFish/fish/compare/v1.1.7...HEAD
+[1.1.7]: https://github.com/StevenDahFish/fish/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/StevenDahFish/fish/compare/v1.1.5...v1.1.6
 [1.1.5]: https://github.com/StevenDahFish/fish/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/StevenDahFish/fish/compare/v1.1.3...v1.1.4

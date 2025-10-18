@@ -38,8 +38,7 @@ end
 -- Mapping
 export type client = {}
 
-type self = server
-type server = typeof(MyService)
+type self = typeof(MyService)
 type sclient = typeof(MyService.Client)
 type sclientsignal = typeof(MyService.Client.Signal)
 return fish.service("MyService", MyService, script)
@@ -298,8 +297,7 @@ export type client = {
 	Money: fish.ClientRemoteProperty
 }
 
-type self = server
-type server = typeof(PlayerService)
+type self = typeof(PlayerService)
 type sclient = typeof(PlayerService.Client)
 type sclientsignal = typeof(PlayerService.Client.Signal)
 return fish.service("PlayerService", PlayerService, script)

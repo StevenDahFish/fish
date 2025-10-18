@@ -14,11 +14,11 @@ local OtherService = {Client = {Signal = {}}}
 --// Client Events
 
 --// Functions
-function OtherService.SayHello(self: server)
+function OtherService.SayHello(self: self)
 	print("Hello from OtherService!")
 end
 
-function OtherService.Start(self: server)
+function OtherService.Start(self: self)
 	warn("OtherService started!")
 end
 
@@ -27,7 +27,6 @@ export type client = {
 	
 } & typeof(OtherService.Client)
 
-type self = server
-type server = typeof(OtherService)
+type self = typeof(OtherService)
 type sclient = typeof(OtherService.Client)
 return fish.service("OtherService", OtherService, script)

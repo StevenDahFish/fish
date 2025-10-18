@@ -50,8 +50,7 @@ Initializes a service
 		"\t",
 		"}",
 		"",
-		"type self = server",
-		"type server = typeof($TM_FILENAME_BASE)",
+		"type self = typeof($TM_FILENAME_BASE)",
 		"type sclient = typeof($TM_FILENAME_BASE.Client)",
 		"type sclientsignal = typeof($TM_FILENAME_BASE.Client.Signal)",
 		"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
@@ -85,8 +84,7 @@ export type client = {
 	
 }
 
-type self = server
-type server = typeof(MyService)
+type self = typeof(MyService)
 type sclient = typeof(MyService.Client)
 type sclientsignal = typeof(MyService.Client.Signal)
 return fish.service("MyService", MyService, script)
@@ -186,7 +184,7 @@ Create a public client function for a service
 "fish function client": {
 	"prefix": "ffc",
 	"body": [
-		"function $TM_FILENAME_BASE.Client.$1(self: fish.self<sclient, server>$2)",
+		"function $TM_FILENAME_BASE.Client.$1(self: fish.self<sclient, self>$2)",
 		"\t$0",
 		"end"
 	],
@@ -198,7 +196,7 @@ Create a public client function for a service
 <summary>Output</summary>
 
 ```lua
-function MyService.Client.Function(self: fish.self<sclient, server>)
+function MyService.Client.Function(self: fish.self<sclient, self>)
 	
 end
 ```
@@ -215,7 +213,7 @@ Create a public client function signal for a service
 "fish function client signal": {
 	"prefix": "ffcs",
 	"body": [
-		"function $TM_FILENAME_BASE.Client.Signal.$1(self: fish.self<sclientsignal, server>$2)",
+		"function $TM_FILENAME_BASE.Client.Signal.$1(self: fish.self<sclientsignal, self>$2)",
 		"\t$0",
 		"end",
 	],
@@ -227,7 +225,7 @@ Create a public client function signal for a service
 <summary>Output</summary>
 
 ```lua
-function MyService.Client.Signal.Function(self: fish.self<sclientsignal, server>)
+function MyService.Client.Signal.Function(self: fish.self<sclientsignal, self>)
 	
 end
 ```
@@ -466,8 +464,7 @@ All snippets in one
 			"\t",
 			"}",
 			"",
-			"type self = server",
-			"type server = typeof($TM_FILENAME_BASE)",
+			"type self = typeof($TM_FILENAME_BASE)",
 			"type sclient = typeof($TM_FILENAME_BASE.Client)",
 			"type sclientsignal = typeof($TM_FILENAME_BASE.Client.Signal)",
 			"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
@@ -507,7 +504,7 @@ All snippets in one
 	"fish function client": {
 		"prefix": "ffc",
 		"body": [
-			"function $TM_FILENAME_BASE.Client.$1(self: fish.self<sclient, server>$2)",
+			"function $TM_FILENAME_BASE.Client.$1(self: fish.self<sclient, self>$2)",
 			"\t$0",
 			"end"
 		],
@@ -516,7 +513,7 @@ All snippets in one
 	"fish function client signal": {
 		"prefix": "ffcs",
 		"body": [
-			"function $TM_FILENAME_BASE.Client.Signal.$1(self: fish.self<sclientsignal, server>$2)",
+			"function $TM_FILENAME_BASE.Client.Signal.$1(self: fish.self<sclientsignal, self>$2)",
 			"\t$0",
 			"end",
 		],
