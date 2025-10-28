@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Changed all references to "server" type in services to use "self" instead due to context being missed
+- Converts Client.Signal in services into a table if it isn't one (fixes type being inaccurate)
 
 ## [1.1.7]
 

@@ -84,7 +84,10 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, script
 		if service.Client.Server ~= service then
 			service.Client.Server = service
 		end
-		if type(service.Client.Signal) == "table" then
+		if type(service.Client.Signal) ~= "table" then
+			service.Client.Signal = {}
+		end
+		if service.Client.Signal.Server ~= service then
 			service.Client.Signal.Server = service
 		end
 		if type(service.Start) ~= "function" then
@@ -203,7 +206,7 @@ function Server.start(): Promise.TypedPromise<nil>
 
 					-- Implement confirm and inject it
 					local returnValues = {"__fish_caught_error", "__fish_unknown_error"}
-					localSelf.confirm = function<T>(value: T)
+					localSelf.confirm = function<T>(value: T): T
 						if not value then
 							if coroutine.isyieldable() then
 								returnValues = {}
