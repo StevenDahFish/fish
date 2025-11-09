@@ -58,11 +58,11 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, script
 		return services[name] :: fish.Service<T>
 	else
 		-- Construct service
-		assert(type(name) == "string", `Name must be a string; got {typeof(serviceDef.Name)}`)
+		assert(type(name) == "string", `Name must be a string; got {typeof(name)}`)
 		assert(#name > 0, "Name must be a non-empty string")
 		assert(type(serviceDef) == "table", `Service must be a table; got {typeof(serviceDef)}`)
 		assert(typeof(scriptInstance) == "Instance" and scriptInstance:IsA("ModuleScript"), `Script instance must be provided; got type {typeof(scriptInstance)}`)
-		assert(services[name] == nil, `Service "{serviceDef.Name}" already exists`)
+		assert(services[name] == nil, `Service "{name}" already exists`)
 
 		if scriptInstance.Parent then
 			local loadRequirementModule = scriptInstance.Parent:FindFirstChild("@load")
@@ -76,22 +76,22 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, script
 
 		assert(not started, "Service cannot be added after calling \"fish.Start()\"")
 
-		local service = serviceDef
+		local service = serviceDef :: fish.InternalServiceDef<T>
 
 		if type(service.Client) ~= "table" then
 			service.Client = {}
 		end
+		assert(service.Client)
 		if service.Client.Server ~= service then
 			service.Client.Server = service
 		end
-		if type(service.Client.Signal) ~= "table" then
-			service.Client.Signal = {}
-		end
-		if service.Client.Signal.Server ~= service then
+		if type(service.Client.Signal) == "table" then
 			service.Client.Signal.Server = service
 		end
 		if type(service.Start) ~= "function" then
-			service.Start = function() end
+			service.Start = function()
+				return nil
+			end
 		end
 		service.__fishMetadata = {
 			Instance = scriptInstance
@@ -112,7 +112,7 @@ function Server.serviceDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
 	table.insert(serviceDirectories, folder)
 	
-	local requirePromises = {}
+	local requirePromises: {Promise.Promise} = {}
 	for _, object in folder:GetDescendants() do
 		if object:IsA("ModuleScript") and object.Name ~= "@load" then
 			if object.Parent ~= nil then
@@ -163,9 +163,9 @@ end
 	Starts all created services.
 	Services cannot be created after called.
 
-	@return Promise.TypedPromise<nil> -- Promise that resolves when started
+	@return Promise.TypedPromise<> -- Promise that resolves when started
 ]=]
-function Server.start(): Promise.TypedPromise<nil>
+function Server.start(): Promise.TypedPromise<>
 	if started then
 		return Promise.reject("fish is already started")
 	elseif isStarting then
@@ -178,9 +178,9 @@ function Server.start(): Promise.TypedPromise<nil>
 			servicesFolder.Parent = script.Parent
 
 			-- Wrap function to alter parameter functionality with player
-			local function wrapFunction(func)
-				local mutex = Mutex.new()
-				return function(self, player, ...)
+			local function wrapFunction<K, V>(func: (...any) -> ())
+				local mutex = Mutex.new() :: any -- type definitions are not up-to-date with luau new solver
+				return function(self: {[K]: V}, player: Player, ...)
 					-- Create a local copy of "self" and inject "player" into it
 					local localSelf = {}
 					for k, v in self do
@@ -205,8 +205,8 @@ function Server.start(): Promise.TypedPromise<nil>
 					}
 
 					-- Implement confirm and inject it
-					local returnValues = {"__fish_caught_error", "__fish_unknown_error"}
-					localSelf.confirm = function<T>(value: T): T
+					local returnValues: {any} = {"__fish_caught_error", "__fish_unknown_error"}
+					localSelf.confirm = function<T>(value: T)
 						if not value then
 							if coroutine.isyieldable() then
 								returnValues = {}
@@ -225,7 +225,7 @@ function Server.start(): Promise.TypedPromise<nil>
 						if RunService:IsStudio() then
 							returnValues = {func(localSelf, unpack(args))}
 						else
-							local success, err = pcall(function()
+							local success, err = (pcall :: () -> (boolean, string?))(function() -- casting pcall due to luau new solver issue (see #1881)
 								returnValues = {func(localSelf, unpack(args))}
 							end)
 							if not success then
@@ -287,15 +287,16 @@ function Server.start(): Promise.TypedPromise<nil>
 							client[k] = comm:CreateSignal(k, false)
 						elseif v == UNRELIABLE_SIGNAL_MARKER then
 							client[k] = comm:CreateSignal(k, true)
-						elseif type(v) == "table" and v[1] == PROPERTY_MARKER then
-							client[k] = comm:CreateProperty(k, v[2])
+						elseif type(v) == "table" and (v :: {[any]: any})[1] == PROPERTY_MARKER then
+							client[k] = comm:CreateProperty(k, (v :: {[any]: any})[2])
 						elseif k == "Signal" and type(v) == "table" then
 							for sk, sv in v do
 								if type(sv) == "function" then
-									local wrappedFunction = wrapFunction(sv)
-									v[sk] = comm:CreateSignal(sk, false)
-									v[sk]:Connect(function(...)
-										return wrappedFunction(v, ...)
+									local wrappedFunction = wrapFunction(sv :: (...any) -> any);
+									local signal = comm:CreateSignal(sk, false);
+									(v :: {[any]: any})[sk :: any] = signal
+									signal:Connect(function(...)
+										return wrappedFunction(v :: {[any]: any}, ...)
 									end)
 								end
 							end
@@ -309,7 +310,7 @@ function Server.start(): Promise.TypedPromise<nil>
 					local parents: {string} = {}
 					while true do
 						if rootDirectory ~= nil and rootDirectory.Parent ~= nil then
-							rootDirectory = rootDirectory.Parent
+							rootDirectory = rootDirectory.Parent :: Instance
 							table.insert(parents, rootDirectory.Name)
 							if table.find(serviceDirectories, rootDirectory) ~= nil then
 								-- Found root directory
@@ -353,13 +354,13 @@ end
 --[=[
 	Returns a promise that is resolved once services are started.
 
-	@return Promise.TypedPromise<nil> -- Promise that resolves when started
+	@return Promise.TypedPromise<> -- Promise that resolves when started
 ]=]
-function Server.onStart(): Promise.TypedPromise<nil>
+function Server.onStart(): Promise.TypedPromise<>
 	if started then
 		return Promise.resolve()
 	else
-		return Promise.fromEvent(startedSignal)
+		return Promise.fromEvent(startedSignal) :: Promise.TypedPromise<>
 	end
 end
 

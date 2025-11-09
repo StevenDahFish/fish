@@ -22,7 +22,7 @@ local services: {[string]: fish.ServiceRef} = {}
 local started = false
 local isStarting = false
 local startedSignal = Signal.new()
-local generatedObfuscationString
+local generatedObfuscationString: string?
 
 --[=[
 	@ignore
@@ -33,7 +33,7 @@ local function generateObfuscationString(): string
 	if generatedObfuscationString == nil then
 		generatedObfuscationString = HttpService:GenerateGUID(false)
 	end
-	return generatedObfuscationString
+	return generatedObfuscationString :: string
 end
 
 --[=[
@@ -102,7 +102,9 @@ function Client.controller<T>(name: string, controllerDef: fish.ControllerDef<T>
 			controller.Client = {}
 		end
 		if type(controller.Start) ~= "function" then
-			controller.Start = function() end
+			controller.Start = function()
+				return nil
+			end
 		end
 		controller.__fishMetadata = {
 			Instance = scriptInstance
@@ -122,7 +124,7 @@ end
 function Client.controllerDeep(folder: Instance)
 	assert(typeof(folder) == "Instance", `Folder must be an Instance; got {typeof(folder)}`)
 	
-	local requirePromises = {}
+	local requirePromises: {Promise.Promise} = {}
 	for _, object in folder:GetDescendants() do
 		if object:IsA("ModuleScript") then
 			if object.Parent ~= nil and object.Name ~= "@load" then
@@ -155,7 +157,7 @@ end
 function Client.service(name: string): fish.ServiceRef?
 	-- assert(game:GetAttribute("__fishServerStarted") == true, "fish server has not started")
 	
-	local servicesFolder: Folder = script.Parent.Services
+	local servicesFolder = assert(script.Parent:FindFirstChild("Services") :: Folder?)
 	local serviceFolder = servicesFolder:FindFirstChild(name) :: Folder?
 	assert(serviceFolder ~= nil, `Service "{name}" does not exist`)
 	
@@ -173,7 +175,7 @@ end
 ]=]
 function Client.getServices(): {[string]: fish.ServiceRef}
 	-- assert(game:GetAttribute("__fishServerStarted") == true, "fish server has not started")
-	local servicesFolder: Folder = script.Parent.Services
+	local servicesFolder = assert(script.Parent:FindFirstChild("Services") :: Folder?)
 	for _, service in servicesFolder:GetChildren() do
 		if services[service.Name] == nil then
 			buildService(service :: Folder)
@@ -187,9 +189,9 @@ end
 	Controllers cannot be created after called.
 
 	@param obfuscate boolean? -- Whether to obfuscate controller and service names
-	@return Promise.TypedPromise<nil> -- Promise that resolves when started
+	@return Promise.TypedPromise<> -- Promise that resolves when started
 ]=]
-function Client.start(obfuscate: boolean?): Promise.TypedPromise<nil>
+function Client.start(obfuscate: boolean?): Promise.TypedPromise<>
 	-- If starting
 	if started then
 		return Promise.reject("fish already started")
@@ -220,17 +222,22 @@ function Client.start(obfuscate: boolean?): Promise.TypedPromise<nil>
 
 		-- Obfuscate
 		if obfuscate and not RunService:IsStudio() then
-			local instancesToDestroy = {script.Parent.Services}
-			for _, instance in script.Parent.Services:GetDescendants() do
-				if instance:IsA("RemoteEvent") or instance:IsA("RemoteFunction") then
-					instance.Name = generateObfuscationString()
-					instance.Parent = game
-				else
-					table.insert(instancesToDestroy, instance)
+			local servicesFolder = script.Parent:FindFirstChild("Services") :: Folder?
+			local instancesToDestroy: {Instance?} = {servicesFolder}
+			if servicesFolder then
+				for _, instance in servicesFolder:GetDescendants() do
+					if instance:IsA("RemoteEvent") or instance:IsA("RemoteFunction") then
+						instance.Name = generateObfuscationString()
+						instance.Parent = game
+					else
+						table.insert(instancesToDestroy, instance)
+					end
 				end
 			end
 			for _, instance in instancesToDestroy do
-				instance:Destroy()
+				if instance then
+					instance:Destroy()
+				end
 			end
 			ServerStorage:ClearAllChildren()
 			table.clear(services)
@@ -265,13 +272,13 @@ end
 --[=[
 	Returns a promise that is resolved once controllers are started.
 
-	@return Promise.TypedPromise<nil> -- Promise that resolves when started
+	@return Promise.TypedPromise<> -- Promise that resolves when started
 ]=]
-function Client.onStart(): Promise.TypedPromise<nil>
+function Client.onStart(): Promise.TypedPromise<>
 	if started then
 		return Promise.resolve()
 	else
-		return Promise.fromEvent(startedSignal)
+		return Promise.fromEvent(startedSignal) :: Promise.TypedPromise<>
 	end
 end
 
@@ -291,14 +298,19 @@ if RunService:IsClient() then
 			task.wait()
 		end
 		game:SetAttribute("__fishServerStarted", true)
-		script.Parent:FindFirstChild("__fishServerStarted"):Destroy()
+		
+		local indicator = script.Parent:FindFirstChild("__fishServerStarted")
+		if indicator then
+			indicator:Destroy()
+		end
 	end
 	
 	-- Add ClientService modules
 	local ClientService: ModuleScript = script.Parent.ClientService
-	local serviceFolders: {Folder} = script.Parent.Services:GetChildren()
+	local servicesFolder = assert(script.Parent:FindFirstChild("Services") :: Folder?)
+	local serviceFolders = servicesFolder:GetChildren() :: {Folder}
 	for _, serviceFolder in serviceFolders do
-		-- TODO: Don't hardcode this, account that if they put it in somewhere other than ServerStorage or ServerScriptService, it'll delete the existing script there first
+		-- TODO: Don't hardcode this, account that if the user puts it in somewhere other than ServerStorage or ServerScriptService, it'll delete the existing script there first
 		local currentDirectory = ServerStorage.Server.Services
 		if serviceFolder:GetAttribute("Structure") ~= nil then
 			local structure = serviceFolder:GetAttribute("Structure") :: string
