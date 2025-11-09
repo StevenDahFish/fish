@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[959],{63891:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/StevenDahFish/fish/blob/master","baseUrl":"/fish/","classOrder":[],"apiCategories":[]}')}}]);
