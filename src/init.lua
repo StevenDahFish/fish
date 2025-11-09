@@ -1,6 +1,7 @@
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 local DependencyTypes = require(script.DependencyTypes)
+local Types = require(script.Types)
 
 if RunService:IsClient() and script:FindFirstChild("Server") then
 	local serverInstance = script:FindFirstChild("Server")
@@ -59,7 +60,23 @@ export type self<C, S> = C & {
 
 --[=[
 	@ignore
-	@class ClientRemoteSignal
+	@type ServiceDef unknown & { Client: {[any]: any}?, Start: ((any) -> any)?, [any]: any }
+	@within Types
+	The definition of a service when created using `fish.service(name, serviceDef)` (unknown variant)
+]=]
+export type ServiceDef = Types.ServiceDef<unknown>
+
+--[=[
+	@ignore
+	@type ControllerDef unknown & { Start: ((any) -> any)?, [any]: any }
+	@within Types
+	The definition of a controller when created using `fish.controller(name, controllerDef)` (unknown variant)
+]=]
+export type ControllerDef = Types.ControllerDef<unknown>
+
+--[=[
+	@ignore
+	@class ClientRemoteSignal.Public
 	@client
 	Created via `ClientComm:GetSignal()`.
 ]=]
@@ -67,7 +84,7 @@ export type ClientRemoteSignal = DependencyTypes.ClientRemoteSignal
 
 --[=[
 	@ignore
-	@class ClientRemoteProperty
+	@class ClientRemoteProperty.Public
 	@client
 	Created via `ClientComm:GetProperty()`.
 ]=]

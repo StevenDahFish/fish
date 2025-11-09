@@ -25,6 +25,11 @@ fish.start(true)
 * You will lose the abilty to know what controller gave an error (*during playtests out of studio*) due to the script name being randomized. Services remain intact and will still say their name correctly.
 :::
 
+## @load
+:::warning WORK IN PROGRESS
+This will be written on the next commit!
+:::
+
 ## Mutex
 [Mia Vince's](https://wally.run/package/notfenv/mutex) implementation of [Mutex](https://en.wikipedia.org/wiki/Mutual_exclusion) has been implemented into all [service client functions](services/#adding-client-functions-to-a-service) and [service client signals](services/#signals). You can access it by using `self.Mutex` and see examples of how to use it [here](/api/Types#self<C,S>).
 

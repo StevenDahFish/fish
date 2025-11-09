@@ -2,7 +2,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 --// Core
-local fish = require(ReplicatedStorage.Packages.fish).Client
+local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Client
 local ExampleController = {}
 
 --// Dependencies
@@ -21,4 +21,4 @@ function ExampleController.Start(self: self)
 end
 
 type self = typeof(ExampleController)
-return fish.controller("ExampleController", ExampleController, script)
+return fish.controller("ExampleController", ExampleController :: fish.ControllerDef, script)

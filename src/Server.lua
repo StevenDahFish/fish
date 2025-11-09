@@ -163,7 +163,7 @@ end
 	Starts all created services.
 	Services cannot be created after called.
 
-	@return Promise.TypedPromise<> -- Promise that resolves when started
+	@return Promise<> -- Promise that resolves when started
 ]=]
 function Server.start(): Promise.TypedPromise<>
 	if started then
@@ -354,7 +354,7 @@ end
 --[=[
 	Returns a promise that is resolved once services are started.
 
-	@return Promise.TypedPromise<> -- Promise that resolves when started
+	@return Promise<> -- Promise that resolves when started
 ]=]
 function Server.onStart(): Promise.TypedPromise<>
 	if started then

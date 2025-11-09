@@ -189,7 +189,7 @@ end
 	Controllers cannot be created after called.
 
 	@param obfuscate boolean? -- Whether to obfuscate controller and service names
-	@return Promise.TypedPromise<> -- Promise that resolves when started
+	@return Promise<> -- Promise that resolves when started
 ]=]
 function Client.start(obfuscate: boolean?): Promise.TypedPromise<>
 	-- If starting
@@ -272,7 +272,7 @@ end
 --[=[
 	Returns a promise that is resolved once controllers are started.
 
-	@return Promise.TypedPromise<> -- Promise that resolves when started
+	@return Promise<> -- Promise that resolves when started
 ]=]
 function Client.onStart(): Promise.TypedPromise<>
 	if started then

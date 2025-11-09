@@ -5,23 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.8] - 2025-11-09
+
+### Changed
+- Made fish.ServiceDef and fish.ControllerDef public
+- Importing fish no longer specifies "local" after the first definition
+- You must now import fish the same way done on the server due to the need to access fish.ControllerDef
+- You must now cast fish.ServiceDef or fish.ControllerDef when defining a service or controller respectively
 
 ### Fixed
 - Changed all references to "server" type in services to use "self" instead due to context being missed
 - Converts Client.Signal in services into a table if it isn't one (fixes type being inaccurate)
 - Typing now works with luau's new solver
 
-## [1.1.7]
+## [1.1.7] - 2025-10-17
 
 ### Changed
 - self.confirm() now returns the value passed to it, similar to assert()
 - Clarified error message on client when obfuscation is enabled
 
 ### Fixed
-- Type definition "{Start: never}" causing inability to reference service/controller using variable
+- Type definition causing inability to reference service/controller using variable
 
-## [1.1.6]
+## [1.1.6] - 2025-09-13
 
 ### Added
 - Documentation for fish
@@ -177,7 +183,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[Unreleased]: https://github.com/StevenDahFish/fish/compare/v1.1.7...HEAD
+[1.1.8]: https://github.com/StevenDahFish/fish/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/StevenDahFish/fish/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/StevenDahFish/fish/compare/v1.1.5...v1.1.6
 [1.1.5]: https://github.com/StevenDahFish/fish/compare/v1.1.4...v1.1.5

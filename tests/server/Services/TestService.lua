@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 --// Core
-local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server
+local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
 local t = require(ReplicatedStorage.Packages.t)
 local TestService = {Client = {Signal = {}}}
 
@@ -54,4 +54,4 @@ export type client = {
 type self = typeof(TestService)
 type sclient = typeof(TestService.Client)
 type sclientsignal = typeof(TestService.Client.Signal)
-return fish.service("TestService", TestService, script)
+return fish.service("TestService", TestService :: fish.ServiceDef, script)

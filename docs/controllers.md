@@ -6,7 +6,7 @@ sidebar_position: 4
 ## Creating a Controller
 A controller is a client module to handle an aspect of your game. Start by importing the client section of fish and creating an empty table to represent your controller. It is not necessary to import it in the same way that the server had to be imported, but you are able to if it is easier to keep it consistent.
 ```lua
-local fish = require(ReplicatedStorage.Packages.fish).Client
+local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Client
 local MyController = {}
 ```
 Similar to services, a start function should be defined as apart of the controller table which gets ran on framework start. Define it with dot notation and pass in the `self` type to allow full autocomplete. (*this type is defined in the next code block*)
@@ -21,7 +21,7 @@ end
 Finally, define the `self` type and return the controller by defining it with fish.
 ```lua
 type self = typeof(MyController)
-return fish.controller("MyController", MyController, script)
+return fish.controller("MyController", MyController :: fish.ControllerDef, script)
 ```
 :::tip Snippet
 **[fishclient](snippets/#fish-client) (fish client)**<br/>Initializes a controller
@@ -34,7 +34,7 @@ Services are able to be communicated with through its functions, signals, and pr
 
 To import a service, you'll want to simply require it in the location that you store them. In this example, we'll be following the same path shown in [Basic Usage](getting-started#basic-usage) (`ServerStorage > Server > Services`). However, this will not give the correct typing as you'll be seeing the types as if you were viewing this from a server context. To fix this, we redefine the variable while assigning it the type of the `client` [mapping](services#mapping) that was explained in the services documentation. The result looks like this:
 ```lua
-local MyService = require(ServerStorage.Server.Services.MyService); local MyService: MyService.client = MyService
+local MyService = require(ServerStorage.Server.Services.MyService); local MyService = MyService :: MyService.client
 ```
 :::tip Snippet
 **[fsc](snippets/#fish-service-reference-client) (fish service reference client)**<br/>Creates a service reference for the client
@@ -46,7 +46,7 @@ local fish = require(ReplicatedStorage.Packages.fish).Client
 local MyController = {}
 
 -- Dependencies
-local MyService = require(ServerStorage.Server.Services.MyService); local MyService: MyService.client = MyService
+local MyService = require(ServerStorage.Server.Services.MyService); local MyService = MyService :: MyService.client
 
 function MyController:Start()
 	MyService:GetMoney():andThen(function(money)
@@ -62,6 +62,6 @@ function MyController:Start()
 	end)
 end
 
-return fish.controller("MyController", MyController, script)
+return fish.controller("MyController", MyController :: fish.ControllerDef, script)
 
 ```

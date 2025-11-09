@@ -8,7 +8,7 @@ A service is a server module to handle an aspect of your game. To create a servi
 First, import the fish module and access the server section and create a table with a Client table to represent your service. Optionally, add a Signal table within the Client table to help with creating signals in the future.
 If you are wondering why you have to format the fish import like shown below, [read this](faq#why-is-fish-server-imported-like-that) to understand.
 ```lua
-local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server
+local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
 local MyService = {Client = {Signal = {}}}
 ```
 :::caution
@@ -28,7 +28,7 @@ Finally, you'll want to define some types for defining client functions later an
 
 #### **Final Result**
 ```lua
-local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server
+local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
 local MyService = {Client = {}}
 
 function MyService.Start(self: self)
@@ -41,7 +41,7 @@ export type client = {}
 type self = typeof(MyService)
 type sclient = typeof(MyService.Client)
 type sclientsignal = typeof(MyService.Client.Signal)
-return fish.service("MyService", MyService, script)
+return fish.service("MyService", MyService :: fish.ServiceDef, script)
 ```
 :::tip Snippet
 **[fishserver](snippets/#fish-server) (fish server)**<br/>Initializes a service
@@ -254,7 +254,7 @@ end
 ## Full Example
 <!-- See the [tests folder](https://github.com/StevenDahFish/fish/tree/master/tests) in the GitHub repository for a full game example. -->
 ```lua
-local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server
+local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
 local Promise = require(ReplicatedStorage.Packages.Promise)
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local t = require(ReplicatedStorage.Packages.t)
@@ -300,5 +300,5 @@ export type client = {
 type self = typeof(PlayerService)
 type sclient = typeof(PlayerService.Client)
 type sclientsignal = typeof(PlayerService.Client.Signal)
-return fish.service("PlayerService", PlayerService, script)
+return fish.service("PlayerService", PlayerService :: fish.ServiceDef, script)
 ```

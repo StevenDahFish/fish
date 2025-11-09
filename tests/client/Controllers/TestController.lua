@@ -3,11 +3,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 --// Core
-local fish = require(ReplicatedStorage.Packages.fish).Client
+local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Client
 local TestController = {}
 
 --// Dependencies
-local TestService = require(ServerStorage.Server.Services.TestService); local TestService: TestService.client = TestService
+local TestService = require(ServerStorage.Server.Services.TestService); local TestService = TestService :: TestService.client
 local ExampleController = require(script.Parent.ExampleController)
 
 --// Constants
@@ -30,4 +30,4 @@ function TestController.Start(self: self)
 end
 
 type self = typeof(ExampleController)
-return fish.controller("TestController", TestController, script)
+return fish.controller("TestController", TestController :: fish.ControllerDef, script)

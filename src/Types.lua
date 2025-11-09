@@ -1,6 +1,8 @@
 --[=[
 	@class Types
 	Global types used throughout the framework
+	
+	@external Promise https://eryn.io/roblox-lua-promise/api/Promise
 ]=]
 
 --[=[
