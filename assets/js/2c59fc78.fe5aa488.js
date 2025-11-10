@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkdocs=globalThis.webpackChunkdocs||[]).push([[392],{2369:s=>{s.exports=JSON.parse('{"baseUrl":"/fish/","classOrder":[],"apiCategories":[]}')}}]);
