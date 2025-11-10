@@ -33,7 +33,7 @@ Initializes a service
 		"local ReplicatedStorage = game:GetService(\"ReplicatedStorage\")",
 		"",
 		"-- Core",
-		"local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server",
+		"local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server",
 		"local t = require(ReplicatedStorage.Packages.t)",
 		"local $TM_FILENAME_BASE = {Client = {Signal = {}}}",
 		"",
@@ -53,7 +53,7 @@ Initializes a service
 		"type self = typeof($TM_FILENAME_BASE)",
 		"type sclient = typeof($TM_FILENAME_BASE.Client)",
 		"type sclientsignal = typeof($TM_FILENAME_BASE.Client.Signal)",
-		"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
+		"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE :: fish.ServiceDef, script)"
 	],
 	"description": "Template for fish framework server"
 }
@@ -62,12 +62,12 @@ Initializes a service
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 -- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Core
-local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server
+local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
 local t = require(ReplicatedStorage.Packages.t)
 local MyService = {Client = {Signal = {}}}
 
@@ -87,7 +87,7 @@ export type client = {
 type self = typeof(MyService)
 type sclient = typeof(MyService.Client)
 type sclientsignal = typeof(MyService.Client.Signal)
-return fish.service("MyService", MyService, script)
+return fish.service("MyService", MyService :: fish.ServiceDef, script)
 ```
 </details>
 
@@ -107,7 +107,7 @@ Initializes a controller
 		"local ServerStorage = game:GetService(\"ServerStorage\")",
 		"",
 		"-- Core",
-		"local fish = require(ReplicatedStorage.Packages.fish).Client",
+		"local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Client",
 		"local $TM_FILENAME_BASE = {}",
 		"",
 		"-- Functions",
@@ -116,7 +116,7 @@ Initializes a controller
 		"end",
 		"",
 		"type self = & typeof($TM_FILENAME_BASE)",
-		"return fish.controller(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
+		"return fish.controller(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE :: fish.ControllerDef, script)"
 	],
 	"description": "Template for fish framework client"
 }
@@ -125,13 +125,13 @@ Initializes a controller
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 -- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 -- Core
-local fish = require(ReplicatedStorage.Packages.fish).Client
+local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Client
 local MyController = {}
 
 -- Functions
@@ -140,7 +140,7 @@ function MyController.Start(self: self)
 end
 
 type self = typeof(MyController)
-return fish.controller("MyController", MyController, script)
+return fish.controller("MyController", MyController :: fish.ControllerDef, script)
 ```
 </details>
 
@@ -166,7 +166,7 @@ Creates a public function
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 function MyService.Function(self: self)
 	
 end
@@ -195,7 +195,7 @@ Create a public client function for a service
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 function MyService.Client.Function(self: fish.self<sclient, self>)
 	
 end
@@ -224,7 +224,7 @@ Create a public client function signal for a service
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 function MyService.Client.Signal.Function(self: fish.self<sclientsignal, self>)
 	
 end
@@ -251,7 +251,7 @@ Creates a service reference for the server
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 local OtherService = require(script.Parent.OtherService)
 ```
 </details>
@@ -267,7 +267,7 @@ Creates a service reference for the client
 "fish service reference client": {
 	"prefix": "fsc",
 	"body": [
-		"local $1 = require(ServerStorage.Server.Services.$1); local $1: $1.client = $1"
+		"local $1 = require(ServerStorage.Server.Services.$1); local $1 = $1 :: $1.client"
 	],
 	"description": "Snippet to create a service reference for the client"
 }
@@ -276,8 +276,8 @@ Creates a service reference for the client
 <details>
 <summary>Output</summary>
 
-```lua
-local OtherService = require(ServerStorage.Server.Services.OtherService); local OtherService: OtherService.client = OtherService
+```luau
+local OtherService = require(ServerStorage.Server.Services.OtherService); local OtherService = OtherService :: OtherService.client
 ```
 </details>
 
@@ -301,7 +301,7 @@ Creates a controller reference
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 local OtherController = require(script.Parent.OtherController)
 ```
 </details>
@@ -326,7 +326,7 @@ Creates a public RemoteSignal
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 MyService.Client.Signal = fish.signal()
 ```
 </details>
@@ -351,7 +351,7 @@ Creates a public RemoteProperty
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 MyService.Client.Property = fish.property()
 ```
 </details>
@@ -376,7 +376,7 @@ Maps a function in a service
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 Function: (self: any) -> Promise.TypedPromise<>
 ```
 </details>
@@ -401,7 +401,7 @@ Maps a property in a service
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 Property: fish.ClientRemoteProperty
 ```
 </details>
@@ -426,7 +426,7 @@ Maps a signal in a service
 <details>
 <summary>Output</summary>
 
-```lua
+```luau
 Signal: fish.ClientRemoteSignal
 ```
 </details>
@@ -447,7 +447,7 @@ All snippets in one
 			"local ReplicatedStorage = game:GetService(\"ReplicatedStorage\")",
 			"",
 			"-- Core",
-			"local fish = require(ReplicatedStorage.Packages.fish); local fish = fish.Server",
+			"local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server",
 			"local t = require(ReplicatedStorage.Packages.t)",
 			"local $TM_FILENAME_BASE = {Client = {Signal = {}}}",
 			"",
@@ -467,7 +467,7 @@ All snippets in one
 			"type self = typeof($TM_FILENAME_BASE)",
 			"type sclient = typeof($TM_FILENAME_BASE.Client)",
 			"type sclientsignal = typeof($TM_FILENAME_BASE.Client.Signal)",
-			"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
+			"return fish.service(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE :: fish.ServiceDef, script)"
 		],
 		"description": "Template for fish framework server"
 	},
@@ -479,7 +479,7 @@ All snippets in one
 			"local ServerStorage = game:GetService(\"ServerStorage\")",
 			"",
 			"-- Core",
-			"local fish = require(ReplicatedStorage.Packages.fish).Client",
+			"local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Client",
 			"local $TM_FILENAME_BASE = {}",
 			"",
 			"-- Functions",
@@ -488,7 +488,7 @@ All snippets in one
 			"end",
 			"",
 			"type self = typeof($TM_FILENAME_BASE)",
-			"return fish.controller(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE, script)"
+			"return fish.controller(\"$TM_FILENAME_BASE\", $TM_FILENAME_BASE :: fish.ControllerDef, script)"
 		],
 		"description": "Template for fish framework client"
 	},
@@ -529,7 +529,7 @@ All snippets in one
 	"fish service reference client": {
 		"prefix": "fsc",
 		"body": [
-			"local $1 = require(ServerStorage.Server.Services.$1); local $1: $1.client = $1"
+			"local $1 = require(ServerStorage.Server.Services.$1); local $1 = $1 :: $1.client"
 		],
 		"description": "Snippet to create a service reference for the client"
 	},

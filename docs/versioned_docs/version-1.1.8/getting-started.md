@@ -61,7 +61,7 @@ StarterPlayer
 ```
 
 Initialize the server in `ServerScriptService > Initialize.lua`:
-```lua
+```luau
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
@@ -71,7 +71,7 @@ fish.start()
 ```
 
 Initialize the client as well in `StarterPlayer > StarterPlayerScripts > Initialize.lua`:
-```lua
+```luau
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 

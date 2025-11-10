@@ -6,8 +6,8 @@ sidebar_position: 3
 ## Creating a Service
 A service is a server module to handle an aspect of your game. To create a service *with full type support*, all you need is a few things.
 First, import the fish module and access the server section and create a table with a Client table to represent your service. Optionally, add a Signal table within the Client table to help with creating signals in the future.
-If you are wondering why you have to format the fish import like shown below, [read this](faq#why-is-fish-server-imported-like-that) to understand.
-```lua
+If you are wondering why you have to format the fish import like shown below, [read this](faq#why-is-fish-serverclient-imported-like-that) to understand.
+```luau
 local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
 local MyService = {Client = {Signal = {}}}
 ```
@@ -16,7 +16,7 @@ If there is no Client table or nothing is put inside of that table, the service 
 :::
 
 Next, create a start function as apart of the service table. This will be ran once the framework is started. Define it with dot notation and pass in the `self` type to allow full autocomplete. (*this type is defined in the next code block*)
-```lua
+```luau
 function MyService.Start(self: self)
 	print("MyService has been started!")
 end
@@ -27,7 +27,7 @@ end
 Finally, you'll want to define some types for defining client functions later and then return the service by defining it with fish.
 
 #### **Final Result**
-```lua
+```luau
 local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
 local MyService = {Client = {}}
 
@@ -48,7 +48,7 @@ return fish.service("MyService", MyService :: fish.ServiceDef, script)
 :::
 ## Public functions
 You can create a function that is accessible by other services by defining a function in the service table. After all, a service is just a table.
-```lua
+```luau
 -- MyService.lua
 function MyService.PublicHello(self: self)
 	print("Hello!")
@@ -65,7 +65,7 @@ end
 
 ## Public signals
 You can also import the [Signal](https://sleitnick.github.io/RbxUtil/api/Signal/) package and define it in the service table, allowing you to send events to other services.
-```lua
+```luau
 -- MyService.lua
 MyService.OnHello = Signal.new()
 
@@ -84,12 +84,12 @@ end
 
 ## Mapping
 Mapping is the act of typing what is available to the client. This is crucial in order for the client to know about what services expose to them. This means any client functions, signals, or properties you create, you must put it in the mapping in order for it to be recognized in controllers. If this service is planned to not have any public features, it is not necessary to create mappings.
-```lua
+```luau
 export type client = {}
 ```
 ### Client Functions
 All client functions return a [Promise](https://eryn.io/roblox-lua-promise/api/Promise) that is resolved once the server returns a value. You must account for this when writing the mapping. Additionally for convention, all functions should be seen as "methods" which means `self` should be passed in as the first argument with type `any`.
-```lua
+```luau
 export type client = {
 	GetMoney: (self: any) -> Promise.TypedPromise<number>,
 	-- Represents:
@@ -107,7 +107,7 @@ export type client = {
 
 ### Client Signals/Properties
 Simply use the appropriate type of `fish.ClientRemoteSignal` or `fish.ClientRemoteProperty` when defining signals or properties.
-```lua
+```luau
 export type client = {
 	SomeSignal: fish.ClientRemoteSignal,
 	SomeProperty: fish.ClientRemoteProperty
@@ -123,7 +123,7 @@ export type client = {
 All functions added to the Client table are automatically exposed to the client and can be called. In order for proper typing, you must also define a [mapping](#mapping) that returns a Promise.
 
 fish provides its own self object that contains the player who called the function, useful libraries like [Mutex](https://en.wikipedia.org/wiki/Mutual_exclusion) that is exclusive for each function, as well as being able to access any public client function or server function. See all entries in the [API](/api/Types#self<C,S>). Provide the types of your own client table and service table as parameters to fish.self for full type completion as well.
-```lua
+```luau
 function MyService.Client.SayHello(self: fish.self<sclient, server>)
 	print("Hello from " .. self.Player)
 	-- self.Mutex is available
@@ -141,7 +141,7 @@ export type client = {
 **[ffc](snippets/#fish-function-client) (fish function client)**<br/>Create a public client function for a service
 :::
 Here's another example of a client function with parameters, type checking, and return values. This uses the [t package](https://github.com/osyrisrblx/t#readme) to validate types, making it very easy and concise to ensure the values passed in by the client is what you're expecting.
-```lua
+```luau
 function MyService.Client.GetInstanceProperty(self: fish.self<sclient, server>, instance: Instance, propertyName: string?): any
 	assert(t.tuple(t.Instance, t.optional(t.string))(instance, propertyName))
 
@@ -165,7 +165,7 @@ Communicating with the client is only possible using **one-way communication** (
 
 ### Signals
 [Signals](https://sleitnick.github.io/RbxUtil/api/RemoteSignal/) (see their API for more info) allow you to send data to any player which are able to be listened to on the client in any controller. Signals can also be listened to on the server, allowing the client to fire an event and send data to the server without expecting a response. To create a signal, you want to use `fish.signal()` and define it in the Client table of the service to expose it. **You will also need to map this** which is shown below.
-```lua
+```luau
 MyService.Client.MoneyUpdated = fish.signal()
 
 export type client = {
@@ -179,7 +179,7 @@ export type client = {
 Signals are not created until `fish.start()` is called as this function only creates a marker to indicate to the framework that a signal is wanted to be created. When a service's `Start()` function is called, it is safe to start using the signal.
 :::
 Here's an example of how to fire to a client and for a controller to listen to this signal.
-```lua
+```luau
 -- MyService.lua
 function MyService.AddMoney(self: self, player: Player, amount: number)
 	money[player] -= amount
@@ -194,7 +194,7 @@ function MyController.Start(self: self)
 end
 ```
 If you wish to listen to when the client fires an event to the server, you can either listen to the same way `MyController.Start()` does in the code block above but on the server instead, or you can use the Signal table defined earlier within the Client table. This convention follows very similarly to [client functions](#adding-client-functions-to-a-service) and is therefore recommended.
-```lua
+```luau
 -- MyService.lua
 function MyService.Client.Signal.MousePositionUpdate(self: fish.self<sclientsignal, server>, position: Vector2)
 	print("The mouse position of " .. player.Name .. " is now " .. tostring(position))
@@ -217,7 +217,7 @@ end
 
 ### Properties
 [Properties](https://sleitnick.github.io/RbxUtil/api/RemoteProperty) (see their API for more info) allow you to share any type of data with all players and additionally modify that data only for a specific player. For example, this is a good way to store a currency as you can set the default value to 0 in the property, but later modify that value for a player to match what they have allowing the client to listen to when that value changes with `Observe()` or to get it at any point in time using `Get()`. To create a property, you want to use `fish.property()` and define it in the Client table of the service to expose it. **You will also need to map this** which is shown below.
-```lua
+```luau
 MyService.Client.Money = fish.property(0) -- pass in the initial value of the property
 
 export type client = {
@@ -231,7 +231,7 @@ export type client = {
 Properties are not created until `fish.start()` is called as this function only creates a marker to indicate to the framework that a property is wanted to be created. When a service's `Start()` function is called, it is safe to start using the property.
 :::
 Here's an example of how to use a property and for a controller to read this property.
-```lua
+```luau
 -- MyService.lua
 function MyService.AddMoney(self: self, player: Player, amount: number)
 	local currentMoney: number = self.Client.Money:GetFor(player)
@@ -253,7 +253,7 @@ end
 
 ## Full Example
 <!-- See the [tests folder](https://github.com/StevenDahFish/fish/tree/master/tests) in the GitHub repository for a full game example. -->
-```lua
+```luau
 local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
 local Promise = require(ReplicatedStorage.Packages.Promise)
 local Signal = require(ReplicatedStorage.Packages.Signal)

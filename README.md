@@ -42,6 +42,6 @@ end
 return fish.service("ServiceB", ServiceB, script)
 ```
 
-![A flowchart showcasing how cyclic dependencies cause an issue.](cyclic_dependency.png)
+![A flowchart showcasing how cyclic dependencies cause an issue.](docs/static/cyclic_dependency.png)
 ## Acknowledgements
 Visit the [acknowledgements](https://stevendahfish.github.io/fish/docs/acknowledgements) page here.

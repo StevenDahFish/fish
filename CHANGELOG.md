@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Documentation now using primarily Docusaurus with moonwave as an extension
+- Preparing for 2.0.0 release & added versioning to documentation for this reason
+
+### Fixed
+- Incorrect usages/references on now changed features from [v1.1.8](#118---2025-11-09) for certain parts of the documentation
+
 ## [1.1.8] - 2025-11-09
 
 ### Changed
@@ -183,6 +192,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
+[Unreleased]: https://github.com/StevenDahFish/fish/compare/v1.1.8...HEAD
 [1.1.8]: https://github.com/StevenDahFish/fish/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/StevenDahFish/fish/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/StevenDahFish/fish/compare/v1.1.5...v1.1.6

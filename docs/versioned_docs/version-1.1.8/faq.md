@@ -13,7 +13,7 @@ sidebar_position: 8
 
 ### Why is fish server/client imported like that?
 For clarification, this question is referencing the import of the fish module:
-```lua
+```luau
 -- on the server
 local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
 
@@ -22,7 +22,7 @@ local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Client
 ```
 
 This is due to how Luau reads types when importing modules. In reality, the fish module returns this:
-```lua
+```luau
 	return {
 		Server = {...} -- functions such as .start(), .service(), .property(), etc.
 		Client = {...} -- functions such as .start(), .controller(), .onStart(), etc.
@@ -37,7 +37,7 @@ Make sure you import it correctly as shown [here](controllers#server-communicati
 #### Cyclic Dependencies
 When requiring two services in each other (**AService** requires **BService** which requires **AService** and so on...), this create a cyclic dependency. Unfortunately, due to how requiring modules works with Luau, it's not possible to avoid this error. The only solution is to cast the type `any` in one of the services, removing its typing for that service in the process. The service must also be required outside of the global context (ex. within the Start function) to prevent runtime errors.
 
-```lua
+```luau
 --==============--
 -- ServiceA.lua --
 --==============--
