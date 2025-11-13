@@ -1,5 +1,6 @@
 {
 	"name": "fish",
+	"emitLegacyScripts": false,
 	"tree": {
 		"$className": "DataModel",
 
@@ -10,6 +11,9 @@
 				"fish": {
 					"$path": "src"
 				}
+			},
+			"Client": {
+				"$path": "tests/client"
 			}
 		},
 
@@ -17,26 +21,6 @@
 			"$className": "ServerStorage",
 			"Server": {
 				"$path": "tests/server"
-			}
-		},
-
-		"StarterPlayer": {
-			"$className": "StarterPlayer",
-			"StarterPlayerScripts": {
-				"$className": "StarterPlayerScripts",
-				"Client": {
-					"$path": "tests/client"
-				},
-				"Initialize": {
-					"$path": "tests/Initialize.client.lua"
-				}
-			}
-		},
-
-		"ServerScriptService": {
-			"$className": "ServerScriptService",
-			"Initialize": {
-				"$path": "tests/Initialize.server.lua"
 			}
 		}
 	}

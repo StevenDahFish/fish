@@ -9,7 +9,6 @@ local t = require(ReplicatedStorage.Packages.t)
 local TestService = {Client = {Signal = {}}}
 
 --// Dependencies
-local Promise = require(ReplicatedStorage.Packages.Promise)
 local ExampleModule = require(ServerStorage.Server.Modules.ExampleModule)
 local OtherService = require(script.Parent.OtherService)
 
@@ -21,7 +20,7 @@ local OtherService = require(script.Parent.OtherService)
 TestService.Client.SayHello = fish.signal()
 
 --// Functions
-function TestService.Client.SayHelloPublic(self: fish.self<sclient, self>, yes: string): boolean
+function TestService.Client.SayHelloPublic(self: fish.self<client, self>, yes: string): boolean
 	warn("== SayHelloPublic called == ")
 	self.confirm(t.string(yes)) -- assert, but silently fails instead of throwing an error
 	print("Hello public!")
@@ -29,7 +28,7 @@ function TestService.Client.SayHelloPublic(self: fish.self<sclient, self>, yes: 
 	return true
 end
 
-function TestService.Client.Signal.SayNumber(self: fish.self<sclientsignal, self>, number: number)
+function TestService.Client.Signal.SayNumber(self: fish.self<clientSignal, self>, number: number)
 	warn("== Signal.SayNumber called == ")
 	self.confirm(t.number(number))
 	print(number)
@@ -44,14 +43,8 @@ function TestService.Start(self: self)
 	end)
 end
 
---// Mapping
-export type client = {
-	SayHello: fish.ClientRemoteSignal,
-	SayHelloPublic: (self: any, yes: string) -> Promise.TypedPromise<boolean>,
-	SayNumber: fish.ClientRemoteSignal
-}
-
 type self = typeof(TestService)
-type sclient = typeof(TestService.Client)
-type sclientsignal = typeof(TestService.Client.Signal)
-return fish.service("TestService", TestService :: fish.ServiceDef, script)
+type client = typeof(TestService.Client)
+type clientSignal = typeof(TestService.Client.Signal)
+export type reference = fish.ServiceToReference<client>
+return fish.service(script, TestService)

@@ -1,27 +1,18 @@
 local RunService = game:GetService("RunService")
-local ServerStorage = game:GetService("ServerStorage")
-local DependencyTypes = require(script.DependencyTypes)
 local Types = require(script.Types)
 
-if RunService:IsClient() and script:FindFirstChild("Server") then
+if RunService:IsClient() then
 	local serverInstance = script:FindFirstChild("Server")
-	if serverInstance and RunService:IsRunning() then
+	if serverInstance then
 		serverInstance:Destroy()
 		serverInstance = script.Types:Clone()
 		serverInstance.Name = "Server"
 		serverInstance.Parent = script
 	end
-
-	-- Initialize server-like structure
-	-- TODO: Don't hardcode this, account that if they put it in somewhere other than ServerStorage or ServerScriptService, it'll delete the existing script there first
-	local serverFolder = Instance.new("Folder", ServerStorage)
-	serverFolder.Name = "Server"
-	local services = Instance.new("Folder", serverFolder)
-	services.Name = "Services"
 end
 
 --[=[
-	@type self<C,S> C & { Player: Player, Server: S, Mutex: { Lock: (self) -> (), Unlock: (self) -> (), Wrap: (self, (...any) -> (), ...any) -> (boolean, ...any) }, confirm: (value: any) -> (), [any]: any }
+	@type self<C,S> C & { Player: Player, Server: S, Mutex: { Lock: (self, Player) -> (), Unlock: (self, Player) -> (), Wrap: <A...>(self, (A...) -> (...any), A...) -> (boolean, ...unknown), WrapPlayer: <A...>(self, Player, (A...) -> (...any), A...) -> (boolean, ...unknown) }, confirm: <T>(value: T?) -> T }
 	@within Types
 	Type used to describe the `self` object in Client functions
 	```lua
@@ -50,45 +41,21 @@ export type self<C, S> = C & {
 	Player: Player,
 	Server: S,
 	Mutex: {
-		Lock: (self: any) -> (),
-		Unlock: (self: any) -> (),
-		Wrap: (self: any, (...any) -> (), ...any) -> (boolean, ...any)
+		Lock: (self: any, player: Player?) -> (),
+		Unlock: (self: any, player: Player?) -> (),
+		Wrap: <A...>(self: any, func: (A...) -> (...any), A...) -> (boolean, ...unknown),
+		WrapPlayer: <A...>(self: any, player: Player, func: (A...) -> (...any), A...) -> (boolean, ...unknown)
 	},
-	confirm: <T>(value: T) -> T,
-	[any]: any
+	confirm: <T>(value: T?) -> T
 };
 
 --[=[
 	@ignore
-	@type ServiceDef unknown & { Client: {[any]: any}?, Start: ((any) -> any)?, [any]: any }
-	@within Types
-	The definition of a service when created using `fish.service(name, serviceDef)` (unknown variant)
+	@type ServiceToReference<T> {[any]: ToClient<type>}
+	@within TypeFunctions
+	A type used to wrap an entire service's client table with ToClient<type>
 ]=]
-export type ServiceDef = Types.ServiceDef<unknown>
-
---[=[
-	@ignore
-	@type ControllerDef unknown & { Start: ((any) -> any)?, [any]: any }
-	@within Types
-	The definition of a controller when created using `fish.controller(name, controllerDef)` (unknown variant)
-]=]
-export type ControllerDef = Types.ControllerDef<unknown>
-
---[=[
-	@ignore
-	@class ClientRemoteSignal.Public
-	@client
-	Created via `ClientComm:GetSignal()`.
-]=]
-export type ClientRemoteSignal = DependencyTypes.ClientRemoteSignal
-
---[=[
-	@ignore
-	@class ClientRemoteProperty.Public
-	@client
-	Created via `ClientComm:GetProperty()`.
-]=]
-export type ClientRemoteProperty = DependencyTypes.ClientRemoteProperty
+export type ServiceToReference<T> = Types.ServiceToReference<T>
 
 return {
 	Server = require(script.Server),

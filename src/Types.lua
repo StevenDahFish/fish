@@ -1,9 +1,9 @@
 --[=[
 	@class Types
 	Global types used throughout the framework
-	
-	@external Promise https://eryn.io/roblox-lua-promise/api/Promise
 ]=]
+
+local PromiseModule = require(script.Parent.Parent.Promise)
 
 --[=[
 	@type ServiceDef<T> T & { Client: {[any]: any}?, Start: ((any) -> any)?, [any]: any }
@@ -17,25 +17,7 @@ export type ServiceDef<T> = T & {
 }
 
 --[=[
-	@type InternalServiceDef<T> T & { Client: { Server: T?, Signal: { Server: T?, [any]: any }?, [any]: any }?, Start: ((any) -> any)?, [any]: any }
-	@within Types
-	The internal definition of a service while being created using `fish.service(name, serviceDef)`
-]=]
-export type InternalServiceDef<T> = T & {
-	Client: {
-		Server: T?,
-		Signal: {
-			Server: T?,
-			[any]: any
-		}?,
-		[any]: any
-	}?,
-	Start: ((any) -> any)?,
-	[any]: any
-}
-
---[=[
-	@type Service<T> T & { Client: { Server: T, Signal: { Server: T, [any]: any }, [any]: any }, Start: (any) -> any, [any]: any }
+	@type Service<T> T & { Client: { Server: T, Signal: { Server: T, [any]: any }, [any]: any }, Start: (any) -> any, LoadPriority: number?, [any]: any }
 	@within Types
 	A service as seen in the server context
 ]=]
@@ -49,6 +31,7 @@ export type Service<T> = T & {
 		[any]: any 
 	},
 	Start: (any) -> any,
+	LoadPriority: number?,
 	[any]: any
 }
 
@@ -81,5 +64,568 @@ export type Controller<T> = T & {
 	LoadPriority: number?,
 	[any]: any
 }
+
+
+
+--[=[
+	@ignore
+	@class DependencyTypes
+]=]
+
+--[=[
+	@ignore
+	@prop N/A nil
+	@within DependencyTypes
+	Comm - sleitnick
+	These types were already written -- this was put into this module for ease of access
+]=]
+
+type Args = {
+	n: number,
+	[any]: any,
+}
+
+type FnBind = (Instance, ...any) -> ...any
+
+type ServerMiddlewareFn = (Instance, Args) -> (boolean, ...any)
+type ServerMiddleware = { ServerMiddlewareFn }
+
+type ClientMiddlewareFn = (Args) -> (boolean, ...any)
+type ClientMiddleware = { ClientMiddlewareFn }
+
+--[=[
+	@ignore
+	@prop N/A nil
+	@within DependencyTypes
+	RemoteSignal - sleitnick
+]=]
+
+--[=[
+	@ignore
+	@class RemoteSignal
+	@server
+	Created via `ServerComm:CreateSignal()`.
+]=]
+export type RemoteSignal = {
+	Type: "RemoteSignal",
+
+	--[=[
+		@return boolean
+		Returns `true` if the underlying RemoteSignal is bound to an
+		UnreliableRemoteEvent object.
+	]=]
+	IsUnreliable: (self: RemoteSignal) -> boolean,
+	--[=[
+		@param fn (player: Player, ...: any) -> nil -- The function to connect
+		@return Connection
+		Connect a function to the signal. Anytime a matching ClientRemoteSignal
+		on a client fires, the connected function will be invoked with the
+		arguments passed by the client.
+	]=]
+	Connect: (self: RemoteSignal, fn: (player: Player, ...any) -> nil) -> (),
+	--[=[
+		@param player Player -- The target client
+		@param ... any -- Arguments passed to the client
+		Fires the signal at the specified client with any arguments.
+
+		:::note Outbound Middleware
+		All arguments pass through any outbound middleware (if any)
+		before being sent to the clients.
+		:::
+	]=]
+	Fire: (self: RemoteSignal, player: Player, ...any) -> (),
+	--[=[
+		@param ... any
+		Fires the signal at _all_ clients with any arguments.
+
+		:::note Outbound Middleware
+		All arguments pass through any outbound middleware (if any)
+		before being sent to the clients.
+		:::
+	]=]
+	FireAll: (self: RemoteSignal, ...any) -> (),
+	--[=[
+		@param ignorePlayer Player -- The client to ignore
+		@param ... any -- Arguments passed to the other clients
+		Fires the signal to all clients _except_ the specified
+		client.
+
+		:::note Outbound Middleware
+		All arguments pass through any outbound middleware (if any)
+		before being sent to the clients.
+		:::
+	]=]
+	FireExcept: (self: RemoteSignal, ignorePlayer: Player, ...any) -> (),
+	--[=[
+		@param predicate (player: Player, argsFromFire: ...) -> boolean
+		@param ... any -- Arguments to pass to the clients (and to the predicate)
+		Fires the signal at any clients that pass the `predicate`
+		function test. This can be used to fire signals with much
+		more control logic.
+
+		:::note Outbound Middleware
+		All arguments pass through any outbound middleware (if any)
+		before being sent to the clients.
+		:::
+
+		:::caution Predicate Before Middleware
+		The arguments sent to the predicate are sent _before_ getting
+		transformed by any middleware.
+		:::
+
+		```lua
+		-- Fire signal to players of the same team:
+		remoteSignal:FireFilter(function(player)
+			return player.Team.Name == "Best Team"
+		end)
+		```
+	]=]
+	FireFilter: (self: RemoteSignal, predicate: (Player, ...any) -> boolean, ...any) -> (),
+	--[=[
+		Fires a signal at the clients within the `players` table. This is
+		useful when signals need to fire for a specific set of players.
+
+		For more complex firing, see `FireFilter`.
+
+		:::note Outbound Middleware
+		All arguments pass through any outbound middleware (if any)
+		before being sent to the clients.
+		:::
+
+		```lua
+		local players = {somePlayer1, somePlayer2, somePlayer3}
+		remoteSignal:FireFor(players, "Hello, players!")
+		```
+	]=]
+	FireFor: (self: RemoteSignal, players: { Player }, ...any) -> (),
+	--[=[
+		Destroys the RemoteSignal object.
+	]=]
+	Destroy: (self: RemoteSignal) -> ()
+}
+
+--[=[
+	@ignore
+	@class ClientRemoteSignal
+	@client
+	Created via `ClientComm:GetSignal()`.
+]=]
+export type ClientRemoteSignal = {
+	--[=[
+		@param fn (...: any) -> ()
+		@return Connection
+		Connects a function to the remote signal. The function will be
+		called anytime the equivalent server-side RemoteSignal is
+		fired at this specific client that created this client signal.
+	]=]
+	Connect: (self: ClientRemoteSignal, fn: (...any) -> ()) -> RBXScriptConnection,
+	--[=[
+		Fires the equivalent server-side signal with the given arguments.
+
+		:::note Outbound Middleware
+		All arguments pass through any outbound middleware before being
+		sent to the server.
+		:::
+	]=]
+	Fire: (self: ClientRemoteSignal, ...any) -> (),
+	--[=[
+		Destroys the ClientRemoteSignal object.
+	]=]
+	Destroy: (self: ClientRemoteSignal) -> ()
+}
+
+--[=[
+	@ignore
+	@prop N/A nil
+	@within DependencyTypes
+	RemoteProperty - sleitnick
+]=]
+
+--[=[
+	@ignore
+	@class RemoteProperty
+	@server
+	Created via `ServerComm:CreateProperty()`.
+
+	Values set can be anything that can pass through a
+	[RemoteEvent](https://developer.roblox.com/en-us/articles/Remote-Functions-and-Events#parameter-limitations).
+
+	Here is a cheat-sheet for the below methods:
+	- Setting data
+		- `Set`: Set "top" value for all current and future players. Overrides any custom-set data per player.
+		- `SetTop`: Set the "top" value for all players, but does _not_ override any custom-set data per player.
+		- `SetFor`: Set custom data for the given player. Overrides the "top" value. (_Can be nil_)
+		- `SetForList`: Same as `SetFor`, but accepts a list of players.
+		- `SetFilter`: Accepts a predicate function which checks for which players to set.
+	- Clearing data
+		- `ClearFor`: Clears the custom data set for a given player. Player will start using the "top" level value instead.
+		- `ClearForList`: Same as `ClearFor`, but accepts a list of players.
+		- `ClearFilter`: Accepts a predicate function which checks for which players to clear.
+	- Getting data
+		- `Get`: Retrieves the "top" value
+		- `GetFor`: Gets the current value for the given player. If cleared, returns the top value.
+
+	:::caution Network
+	Calling any of the data setter methods (e.g. `Set()`) will
+	fire the underlying RemoteEvent to replicate data to the
+	clients. Therefore, setting data should only occur when it
+	is necessary to change the data that the clients receive.
+	:::
+
+	:::caution Tables
+	Tables _can_ be used with RemoteProperties. However, the
+	RemoteProperty object will _not_ watch for changes within
+	the table. Therefore, anytime changes are made to the table,
+	the data must be set again using one of the setter methods.
+	:::
+]=]
+export type RemoteProperty = {
+	Type: "RemoteProperty",
+
+	--[=[
+		Sets the top-level value of all clients to the same value.
+		
+		:::note Override Per-Player Data
+		This will override any per-player data that was set using
+		`SetFor` or `SetFilter`. To avoid overriding this data,
+		`SetTop` can be used instead.
+		:::
+
+		```lua
+		-- Examples
+		remoteProperty:Set(10)
+		remoteProperty:Set({SomeData = 32})
+		remoteProperty:Set("HelloWorld")
+		```
+	]=]
+	Set: (self: RemoteProperty, value: any) -> (),
+	--[=[
+		Set the top-level value of the property, but does not override
+		any per-player data (e.g. set with `SetFor` or `SetFilter`).
+		Any player without custom-set data will receive this new data.
+
+		This is useful if certain players have specific values that
+		should not be changed, but all other players should receive
+		the same new value.
+
+		```lua
+		-- Using just 'Set' overrides per-player data:
+		remoteProperty:SetFor(somePlayer, "CustomData")
+		remoteProperty:Set("Data")
+		print(remoteProperty:GetFor(somePlayer)) --> "Data"
+
+		-- Using 'SetTop' does not override:
+		remoteProperty:SetFor(somePlayer, "CustomData")
+		remoteProperty:SetTop("Data")
+		print(remoteProperty:GetFor(somePlayer)) --> "CustomData"
+		```
+	]=]
+	SetTop: (self: RemoteProperty, value: any) -> (),
+	--[=[
+		@param value any -- Value to set for the clients (and to the predicate)
+		Sets the value for specific clients that pass the `predicate`
+		function test. This can be used to finely set the values
+		based on more control logic (e.g. setting certain values
+		per team).
+
+		```lua
+		-- Set the value of "NewValue" to players with a name longer than 10 characters:
+		remoteProperty:SetFilter(function(player)
+			return #player.Name > 10
+		end, "NewValue")
+		```
+	]=]
+	SetFilter: (self: RemoteProperty, predicate: (Player, any) -> boolean, value: any) -> (),
+	--[=[
+		Set the value of the property for a specific player. This
+		will override the value used by `Set` (and the initial value
+		set for the property when created).
+
+		This value _can_ be `nil`. In order to reset the value for a
+		given player and let the player use the top-level value held
+		by this property, either use `Set` to set all players' data,
+		or use `ClearFor`.
+
+		```lua
+		remoteProperty:SetFor(somePlayer, "CustomData")
+		```
+	]=]
+	SetFor: (self: RemoteProperty, player: Player, value: any) -> (),
+	--[=[
+		Set the value of the property for specific players. This just
+		loops through the players given and calls `SetFor`.
+
+		```lua
+		local players = {player1, player2, player3}
+		remoteProperty:SetForList(players, "CustomData")
+		```
+	]=]
+	SetForList: (self: RemoteProperty, players: { Player }, value: any) -> (),
+	--[=[
+		Clears the custom property value for the given player. When
+		this occurs, the player will reset to use the top-level
+		value held by this property (either the value set when the
+		property was created, or the last value set by `Set`).
+
+		```lua
+		remoteProperty:Set("DATA")
+
+		remoteProperty:SetFor(somePlayer, "CUSTOM_DATA")
+		print(remoteProperty:GetFor(somePlayer)) --> "CUSTOM_DATA"
+
+		-- DOES NOT CLEAR, JUST SETS CUSTOM DATA TO NIL:
+		remoteProperty:SetFor(somePlayer, nil)
+		print(remoteProperty:GetFor(somePlayer)) --> nil
+
+		-- CLEAR:
+		remoteProperty:ClearFor(somePlayer)
+		print(remoteProperty:GetFor(somePlayer)) --> "DATA"
+		```
+	]=]
+	ClearFor: (self: RemoteProperty, player: Player) -> (),
+	--[=[
+		Clears the custom value for the given players. This
+		just loops through the list of players and calls
+		the `ClearFor` method for each player.
+	]=]
+	ClearForList: (self: RemoteProperty, players: { Player }) -> (),
+	--[=[
+		The same as `SetFiler`, except clears the custom value
+		for any player that passes the predicate.
+	]=]
+	ClearFilter: (self: RemoteProperty, predicate: (Player) -> boolean) -> (),
+	--[=[
+		Returns the top-level value held by the property. This will
+		either be the initial value set, or the last value set
+		with `Set()`.
+
+		```lua
+		remoteProperty:Set("Data")
+		print(remoteProperty:Get()) --> "Data"
+		```
+	]=]
+	Get: (self: RemoteProperty) -> any,
+	--[=[
+		Returns the current value for the given player. This value
+		will depend on if `SetFor` or `SetFilter` has affected the
+		custom value for the player. If so, that custom value will
+		be returned. Otherwise, the top-level value will be used
+		(e.g. value from `Set`).
+
+		```lua
+		-- Set top level data:
+		remoteProperty:Set("Data")
+		print(remoteProperty:GetFor(somePlayer)) --> "Data"
+
+		-- Set custom data:
+		remoteProperty:SetFor(somePlayer, "CustomData")
+		print(remoteProperty:GetFor(somePlayer)) --> "CustomData"
+
+		-- Set top level again, overriding custom data:
+		remoteProperty:Set("NewData")
+		print(remoteProperty:GetFor(somePlayer)) --> "NewData"
+
+		-- Set custom data again, and set top level without overriding:
+		remoteProperty:SetFor(somePlayer, "CustomData")
+		remoteProperty:SetTop("Data")
+		print(remoteProperty:GetFor(somePlayer)) --> "CustomData"
+
+		-- Clear custom data to use top level data:
+		remoteProperty:ClearFor(somePlayer)
+		print(remoteProperty:GetFor(somePlayer)) --> "Data"
+		```
+	]=]
+	GetFor: (self: RemoteProperty, player: Player) -> any,
+	--[=[
+		Destroys the RemoteProperty object.
+	]=]
+	Destroy: (self: RemoteProperty) -> ()
+}
+
+--[=[
+	@ignore
+	@class ClientRemoteProperty
+	@client
+	Created via `ClientComm:GetProperty()`.
+]=]
+export type ClientRemoteProperty = {
+	--[=[
+		Gets the value of the property object.
+
+		:::caution
+		This value might not be ready right away. Use `OnReady()` or `IsReady()`
+		before calling `Get()`. If not ready, this value will return `nil`.
+		:::
+	]=]
+	Get: (self: ClientRemoteProperty) -> any,
+	--[=[
+		@return Promise<any>
+		Returns a Promise which resolves once the property object is
+		ready to be used. The resolved promise will also contain the
+		value of the property.
+
+		```lua
+		-- Use andThen clause:
+		clientRemoteProperty:OnReady():andThen(function(initialValue)
+			print(initialValue)
+		end)
+
+		-- Use await:
+		local success, initialValue = clientRemoteProperty:OnReady():await()
+		if success then
+			print(initialValue)
+		end
+		```
+	]=]
+	OnReady: (self: ClientRemoteProperty) -> TypedPromise<any>,
+	--[=[
+		Returns `true` if the property object is ready to be
+		used. In other words, it has successfully gained
+		connection to the server-side version and has synced
+		in the initial value.
+
+		```lua
+		if clientRemoteProperty:IsReady() then
+			local value = clientRemoteProperty:Get()
+		end
+		```
+	]=]
+	IsReady: (self: ClientRemoteProperty) -> boolean,
+	--[=[
+		@param observer (value: any) -> nil
+		@return Connection
+		Observes the value of the property. The observer will
+		be called right when the value is first ready, and
+		every time the value changes. This is safe to call
+		immediately (i.e. no need to use `IsReady` or `OnReady`
+		before using this method).
+
+		Observing is essentially listening to `Changed`, but
+		also sends the initial value right away (or at least
+		once `OnReady` is completed).
+
+		```lua
+		local function ObserveValue(value)
+			print(value)
+		end
+
+		clientRemoteProperty:Observe(ObserveValue)
+		```
+	]=]
+	Observe: (self: ClientRemoteProperty, observer: (value: any) -> ()) -> RBXScriptConnection,
+	--[=[
+		Destroys the ClientRemoteProperty object.
+	]=]
+	Destroy: (self: ClientRemoteProperty) -> ()
+}
+
+--[=[
+	@ignore
+	@class TypeFunctions
+]=]
+
+type Promise = PromiseModule.Promise
+type TypedPromise<T...> = PromiseModule.TypedPromise<T...>
+
+--[=[
+	@type function ServiceToReference (service: type) -> {[any]: ToClient<type>}
+	@within TypeFunctions
+	A type function used to wrap an entire service's client table with ToClient<type>
+]=]
+export type function ServiceToReference(service: type)
+	if not service:is("table") then
+        error("expected type to be table, but got " .. service.tag .. " instead")
+    end
+
+	--[=[
+		@type function ToClient (type: type) -> (ClientRemoteSignal | ClientRemoteProperty | ((...any) -> Promise.TypedPromise<...any>) | never)
+		@within TypeFunctions
+		A type function used to convert various server implementations into their client counterpart
+	]=]
+	local function ToClient(type: type)
+		-- convert RemoteSignal/RemoteProperty to their client counterpart
+		if type:is("table") then
+			local instanceType = type:readproperty(types.singleton("Type"))
+			if instanceType then
+				if instanceType:value() == "RemoteSignal" then
+					return ClientRemoteSignal
+				elseif instanceType:value() == "RemoteProperty" then
+					return ClientRemoteProperty
+				end
+			end
+		elseif type:is("never") then
+			return type
+		end
+
+		-- convert function to their client counterpart
+		if not type:is("function") then
+			error("\nexpected type to be one of the following:\n\tfunction, RemoteSignal, RemoteProperty, never\nbut got " .. type.tag .. " instead")
+		end
+
+		local params = type:parameters()
+		local returns = type:returns()
+
+		-- convert first parameter to any
+		if params.head and #params.head >= 1 then
+			params.head[1] = types.any
+		else
+			error("function does not have any parameters")
+		end
+
+		type:setparameters(params.head, if (params.tail and params.tail.tag == "any") then nil else params.tail)
+
+		local h = returns.head or {}
+		local count = #h
+
+		-- convert return value(s) to be wrapped in promise; specific up to 9 return values before return values become generic
+		local promise
+		if count == 0 then
+			promise = TypedPromise(types.never)
+		elseif count == 1 then
+			promise = TypedPromise(h[1])
+		elseif count == 2 then
+			promise = TypedPromise(h[1], h[2])
+		elseif count == 3 then
+			promise = TypedPromise(h[1], h[2], h[3])
+		elseif count == 4 then
+			promise = TypedPromise(h[1], h[2], h[3], h[4])
+		elseif count == 5 then
+			promise = TypedPromise(h[1], h[2], h[3], h[4], h[5])
+		elseif count == 6 then
+			promise = TypedPromise(h[1], h[2], h[3], h[4], h[5], h[6])
+		elseif count == 7 then
+			promise = TypedPromise(h[1], h[2], h[3], h[4], h[5], h[6], h[7])
+		elseif count == 8 then
+			promise = TypedPromise(h[1], h[2], h[3], h[4], h[5], h[6], h[7], h[8])
+		elseif count == 9 then
+			promise = TypedPromise(h[1], h[2], h[3], h[4], h[5], h[6], h[7], h[8], h[9])
+		else
+			promise = Promise
+		end
+		type:setreturns({promise})
+		
+		return type
+	end
+
+	local newProperties: {[type]: { read: type, write: type }} = {}
+	for key, property in service:properties() do
+		if property.read then
+			local hasClientCounterpart = property.read:is("function")
+			if not hasClientCounterpart and property.read:is("table") then
+				local instanceType = property.read:readproperty(types.singleton("Type"))
+				hasClientCounterpart = instanceType and (instanceType:value() == "RemoteSignal" or instanceType:value() == "RemoteProperty")
+			end
+	
+			if hasClientCounterpart then
+				newProperties[key] = {
+					read = ToClient(property.read),
+					write = types.never
+				}
+			end
+		end
+	end
+
+	return types.newtable(newProperties)
+end
 
 return {}

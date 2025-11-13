@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Majority of code changes for 2.0.0 that can be seen in commit diff
+
 ### Changed
-- Documentation now using primarily Docusaurus with moonwave as an extension
+- Documentation now using primarily Docusaurus with Moonwave as a plugin
 - Preparing for 2.0.0 release & added versioning to documentation for this reason
 
 ### Fixed

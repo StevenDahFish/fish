@@ -21,4 +21,4 @@ function ExampleController.Start(self: self)
 end
 
 type self = typeof(ExampleController)
-return fish.controller("ExampleController", ExampleController :: fish.ControllerDef, script)
+return fish.controller(script, ExampleController)

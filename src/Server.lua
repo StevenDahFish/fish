@@ -8,15 +8,14 @@ local RunService = game:GetService("RunService")
 local Server = {}
 
 --// Dependencies
-local DependencyTypes = require(script.Parent.DependencyTypes)
 local ServerComm = require(script.Parent.Parent.Comm).ServerComm
 local Promise = require(script.Parent.Parent.Promise)
 local Signal = require(script.Parent.Parent.Signal)
-local Mutex = require(script.Parent.Parent.Mutex)
+local Types = require(script.Parent.Types)
 local fish = require(script.Parent.Types)
 
 --// Constants & Variables
-local services: {[string]: fish.Service<any>} = {}
+local services: {[string]: fish.Service<unknown>} = {}
 local serviceDirectories: {Instance} = {}
 local started = false
 local isStarting = false
@@ -47,21 +46,28 @@ end
 	Constructs/gets a service.
 	If the service already exists, the existing service will be returned.
 
-	@param name string -- The name of the service
-	@param serviceDef fish.ServiceDef<T>? -- The definition of the service
-	@param scriptInstance ModuleScript? -- The script instance of the service
+	@param service string | ModuleScript -- The name or script instance of the service
+	@param definition fish.ServiceDef<T>? -- The definition of the service
 	@return fish.Service<T> -- The service itself
 ]=]
-function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, scriptInstance: ModuleScript?): fish.Service<T>
-	if serviceDef == nil or services[name] ~= nil then
+function Server.service<T>(service: string | ModuleScript, definition: (fish.ServiceDef<T> | unknown)?): fish.Service<T>
+	local name, scriptInstance
+	if typeof(service) == "Instance" and service:IsA("ModuleScript") then
+		name = service.Name
+		scriptInstance = service
+	else
+		name = service
+	end
+	
+	if definition == nil or services[name] ~= nil then
 		-- Get service
 		return services[name] :: fish.Service<T>
 	else
 		-- Construct service
 		assert(type(name) == "string", `Name must be a string; got {typeof(name)}`)
 		assert(#name > 0, "Name must be a non-empty string")
-		assert(type(serviceDef) == "table", `Service must be a table; got {typeof(serviceDef)}`)
-		assert(typeof(scriptInstance) == "Instance" and scriptInstance:IsA("ModuleScript"), `Script instance must be provided; got type {typeof(scriptInstance)}`)
+		assert(type(definition) == "table", `Definition must be a table; got {typeof(definition)}`)
+		assert(scriptInstance, `Script instance must be provided; got type {typeof(scriptInstance)}`)
 		assert(services[name] == nil, `Service "{name}" already exists`)
 
 		if scriptInstance.Parent then
@@ -76,29 +82,33 @@ function Server.service<T>(name: string, serviceDef: fish.ServiceDef<T>?, script
 
 		assert(not started, "Service cannot be added after calling \"fish.Start()\"")
 
-		local service = serviceDef :: fish.InternalServiceDef<T>
+		local service = definition :: fish.ServiceDef<T>
 
 		if type(service.Client) ~= "table" then
 			service.Client = {}
 		end
 		assert(service.Client)
+
 		if service.Client.Server ~= service then
 			service.Client.Server = service
 		end
+
 		if type(service.Client.Signal) == "table" then
 			service.Client.Signal.Server = service
 		end
+
 		if type(service.Start) ~= "function" then
 			service.Start = function()
 				return nil
 			end
 		end
+
 		service.__fishMetadata = {
 			Instance = scriptInstance
 		}
 
-		services[name] = service :: fish.Service<T>
-		return services[name]
+		services[name] = service
+		return services[name] :: fish.Service<T>
 	end
 end
 
@@ -142,7 +152,7 @@ end
 	@param unreliable boolean? -- Whether this should be an unreliable RemoteSignal
 	@return RemoteSignal
 ]=]
-function Server.signal(unreliable: boolean?): DependencyTypes.RemoteSignal
+function Server.signal(unreliable: boolean?): Types.RemoteSignal
 	if unreliable == true then
 		return UNRELIABLE_SIGNAL_MARKER
 	else
@@ -155,23 +165,48 @@ end
 
 	@return RemoteProperty
 ]=]
-function Server.property(initialValue: any): DependencyTypes.RemoteProperty
-	return { PROPERTY_MARKER, initialValue } :: DependencyTypes.RemoteProperty
+function Server.property(initialValue: any): Types.RemoteProperty
+	return { PROPERTY_MARKER, initialValue } :: any
 end
 
 --[=[
 	Starts all created services.
 	Services cannot be created after called.
 
-	@return Promise<> -- Promise that resolves when started
+	@param disableConfirmAndMutexSafety boolean? -- Whether self.confirm() should be disabled, and whether mutex won't automatically unlock if an error occurs before self.Mutex:Unlock() is called
+	@return Promise.TypedPromise<> -- Promise that resolves when started
 ]=]
-function Server.start(): Promise.TypedPromise<>
+function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedPromise<>
 	if started then
 		return Promise.reject("fish is already started")
 	elseif isStarting then
 		return Promise.reject("fish is already starting")
 	else
 		isStarting = true
+
+		-- Sort service load order by priority
+		local hasPriority: {fish.Service<unknown>} = {}
+		local noPriority: {fish.Service<unknown>} = {}
+		for name, service in services do
+			service.__fishMetadata.Name = name
+			if service.LoadPriority then
+				table.insert(hasPriority, service)
+			else
+				table.insert(noPriority, service)
+			end
+		end
+		table.sort(hasPriority, function(a: fish.Service<unknown>, b: fish.Service<unknown>)
+			return (a.LoadPriority :: number) > (b.LoadPriority :: number)
+		end)
+		
+		local sortedServices: {fish.Service<unknown>} = {}
+		for _, service in ipairs(hasPriority) do
+			table.insert(sortedServices, service)
+		end
+		for _, service in noPriority do
+			table.insert(sortedServices, service)
+		end
+
 		return Promise.new(function(resolve)
 			local servicesFolder = Instance.new("Folder")
 			servicesFolder.Name = "Services"
@@ -179,7 +214,11 @@ function Server.start(): Promise.TypedPromise<>
 
 			-- Wrap function to alter parameter functionality with player
 			local function wrapFunction<K, V>(func: (...any) -> ())
-				local mutex = Mutex.new() :: any -- type definitions are not up-to-date with luau new solver
+				local mutex: { Locked: boolean, Queue: {thread}, PlayerQueue: { [Player]: { Locked: boolean, Queue: {thread} } } } = {
+					Locked = false,
+					Queue = {},
+					PlayerQueue = {}
+				}
 				return function(self: {[K]: V}, player: Player, ...)
 					-- Create a local copy of "self" and inject "player" into it
 					local localSelf = {}
@@ -189,24 +228,115 @@ function Server.start(): Promise.TypedPromise<>
 					localSelf.Player = player
 
 					-- Implement mutex and inject it
+					local threadLockState: { Global: boolean, Player: { [Player]: true } } = {
+						Global = false,
+						Player = {}
+					}
 					localSelf.Mutex = {
-						Lock = function(self: any)
-							mutex:Lock()
+						Lock = function(self: any, player: Player?)
+							if player then
+								assert(not threadLockState.Player[player], "Cannot lock an already locked mutex in the same thread")
+								threadLockState.Player[player] = true
+
+								local playerMutex = mutex.PlayerQueue[player]
+								if playerMutex == nil then
+									playerMutex = {
+										Locked = false,
+										Queue = {}
+									}
+									mutex.PlayerQueue[player] = playerMutex
+								end
+
+								if playerMutex.Locked then
+									table.insert(playerMutex.Queue, coroutine.running())
+									coroutine.yield()
+								else
+									playerMutex.Locked = true
+								end
+							else
+								assert(not threadLockState.Global, "Cannot lock an already locked mutex in the same thread")
+								threadLockState.Global = true
+
+								if mutex.Locked then
+									table.insert(mutex.Queue, coroutine.running())
+									coroutine.yield()
+								else
+									mutex.Locked = true
+								end
+							end
 						end,
-						Unlock = function(self: any)
-							mutex:Unlock()
+						Unlock = function(self: any, player: Player?)
+							if player then
+								assert(threadLockState.Player[player], "Cannot unlock an already unlocked mutex")
+								threadLockState.Player[player] = nil
+
+								local playerMutex = mutex.PlayerQueue[player]
+								assert(playerMutex and playerMutex.Locked, "Cannot unlock an already unlocked mutex")
+
+								if #playerMutex.Queue > 0 then
+									local nextThread = table.remove(playerMutex.Queue, 1)
+									if nextThread then
+										coroutine.resume(nextThread)
+									end
+								else
+									playerMutex.Locked = false
+									mutex.PlayerQueue[player] = nil
+								end
+							else
+								assert(threadLockState.Global, "Cannot unlock an already unlocked mutex in the same thread")
+								assert(mutex.Locked, "Cannot unlock an already unlocked mutex")
+								threadLockState.Global = false
+								if #mutex.Queue > 0 then
+									local nextThread = table.remove(mutex.Queue, 1)
+									if nextThread then
+										coroutine.resume(nextThread)
+									end
+								else
+									mutex.Locked = false
+								end
+							end
 						end,
-						Wrap = function(self: any, func: (...any) -> (), ...)
-							mutex:Lock()
-							local results = {pcall(func, ...)}
-							mutex:Unlock()
+						Wrap = function<A..., R...>(self: any, func: (A...) -> (R...), ...: A...): (boolean, R...)
+							assert(not threadLockState.Global, "Cannot wrap mutex as this thread is already locked")
+							localSelf.Mutex:Lock()
+							local results: {any} = {pcall(func, ...)}
+							localSelf.Mutex:Unlock()
+							return unpack(results)
+						end,
+						WrapPlayer = function<A..., R...>(self: any, player: Player, func: (A...) -> (R...), ...: A...): (boolean, R...)
+							assert(not threadLockState.Player[player], "Cannot wrap mutex as this thread is already locked")
+							localSelf.Mutex:Lock(player)
+							local results: {any} = {pcall(func, ...)}
+							localSelf.Mutex:Unlock(player)
 							return unpack(results)
 						end
 					}
+					
+					-- Disable confirm and mutex safety if asked
+					if disableConfirmAndMutexSafety then
+						localSelf.confirm = function()
+							error("self.confirm() has been disabled. See fish.start()'s arguments to change this behavior.")
+						end
+
+						local returnValues = {func(localSelf, ...)}
+
+						if mutex.Locked and threadLockState.Global then
+							localSelf.Mutex:Unlock()
+						end
+
+						for player, isLocked in threadLockState.Player do
+							local playerMutex = mutex.PlayerQueue[player]
+    						if isLocked and playerMutex and playerMutex.Locked then
+								localSelf.Mutex:Unlock(player)
+							end
+						end
+
+						return unpack(returnValues)
+					end
 
 					-- Implement confirm and inject it
 					local returnValues: {any} = {"__fish_caught_error", "__fish_unknown_error"}
-					localSelf.confirm = function<T>(value: T)
+					localSelf.confirm = function<T>(value: T?): T
 						if not value then
 							if coroutine.isyieldable() then
 								returnValues = {}
@@ -234,16 +364,26 @@ function Server.start(): Promise.TypedPromise<>
 							end
 						end
 					end)
-					if coroutine.status(thread) == "dead" then
-						return unpack(returnValues)
-					else
+					if coroutine.status(thread) ~= "dead" then
 						repeat task.wait() until coroutine.status(thread) == "dead"
-						return unpack(returnValues)
 					end
+
+					if mutex.Locked and threadLockState.Global then
+						localSelf.Mutex:Unlock()
+					end
+
+					for player, isLocked in threadLockState.Player do
+						local playerMutex = mutex.PlayerQueue[player]
+						if isLocked and playerMutex and playerMutex.Locked then
+							localSelf.Mutex:Unlock(player)
+						end
+					end
+					
+					return unpack(returnValues)
 				end
 			end
 
-			for name, service in services do
+			for _, service in ipairs(sortedServices) do
 				Promise.try(function()
 					-- Register client functionality
 					local client = service.Client :: {[any]: any}
@@ -278,7 +418,7 @@ function Server.start(): Promise.TypedPromise<>
 						return
 					end
 
-					local comm = ServerComm.new(servicesFolder, name) :: any
+					local comm = ServerComm.new(servicesFolder, service.__fishMetadata.Name) :: any
 					for k, v in client do
 						if type(v) == "function" then
 							client[k] = wrapFunction(v)
@@ -303,49 +443,22 @@ function Server.start(): Promise.TypedPromise<>
 						end
 					end
 					
-					-- Emulate structure from construction
-					local serviceFolder: Folder = (servicesFolder :: any)[name]
+					-- Expose parent to client
+					local serviceFolder = assert(servicesFolder:FindFirstChild(service.__fishMetadata.Name) :: Folder?)
 					local serviceScriptInstance: ModuleScript = service.__fishMetadata.Instance
-					local rootDirectory: Instance? = serviceScriptInstance
-					local parents: {string} = {}
-					while true do
-						if rootDirectory ~= nil and rootDirectory.Parent ~= nil then
-							rootDirectory = rootDirectory.Parent :: Instance
-							table.insert(parents, rootDirectory.Name)
-							if table.find(serviceDirectories, rootDirectory) ~= nil then
-								-- Found root directory
-								break
-							end
-						else
-							-- No root directory found
-							rootDirectory = nil
-							break
-						end
-					end
-
-					if rootDirectory ~= nil and #parents > 1 then
-						-- Reverse parents and remove root directory
-						for i = 1, math.floor(#parents / 2) do
-							local j = #parents - i + 1
-							parents[i], parents[j] = parents[j], parents[i]
-						end
-						table.remove(parents, 1)
-						
-						serviceFolder:SetAttribute("Structure", table.concat(parents, "."))
-					end
+					local fullNameSegments = serviceScriptInstance:GetFullName():split(".")
+					fullNameSegments[#fullNameSegments] = nil
+					serviceFolder:SetAttribute("Parent", table.concat(fullNameSegments, "."))
 
 					service.__fishMetadata = nil
-					
 					service:Start()
 				end)
 			end
 			
-			isStarting = false
 			started = true
 			startedSignal:Fire()
-			local startedValue = Instance.new("BinaryStringValue")
-			startedValue.Name = "__fishServerStarted"
-			startedValue.Parent = script.Parent
+			isStarting = false
+			script.Parent.Client:SetAttribute("ServerStarted", true)
 			resolve()
 		end)
 	end
@@ -354,7 +467,7 @@ end
 --[=[
 	Returns a promise that is resolved once services are started.
 
-	@return Promise<> -- Promise that resolves when started
+	@return Promise.TypedPromise<> -- Promise that resolves when started
 ]=]
 function Server.onStart(): Promise.TypedPromise<>
 	if started then

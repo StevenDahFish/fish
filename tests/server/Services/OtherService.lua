@@ -22,11 +22,8 @@ function OtherService.Start(self: self)
 	warn("OtherService started!")
 end
 
---// Mapping
-export type client = {
-	
-} & typeof(OtherService.Client)
-
 type self = typeof(OtherService)
-type sclient = typeof(OtherService.Client)
-return fish.service("OtherService", OtherService :: fish.ServiceDef, script)
+type client = typeof(OtherService.Client)
+type clientSignal = typeof(OtherService.Client.Signal)
+export type reference = fish.ServiceToReference<client>
+return fish.service(script, OtherService)
