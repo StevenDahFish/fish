@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.7.0">
 <title data-rh="true">Changelog | fish</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://stevendahfish.github.io/fish/changelog"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="Changelog | fish"><link data-rh="true" rel="canonical" href="https://stevendahfish.github.io/fish/changelog"><link data-rh="true" rel="alternate" href="https://stevendahfish.github.io/fish/changelog" hreflang="en"><link data-rh="true" rel="alternate" href="https://stevendahfish.github.io/fish/changelog" hreflang="x-default"><link rel="stylesheet" href="/fish/assets/css/styles.139f8062.css">
-<script src="/fish/assets/js/runtime~main.ebd9a1ed.js" defer="defer"></script>
+<script src="/fish/assets/js/runtime~main.bebbcc6a.js" defer="defer"></script>
 <script src="/fish/assets/js/main.2553f768.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -12,8 +12,21 @@
 <p>All notable changes to this project will be documented in this file.</p>
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/" target="_blank" rel="noopener noreferrer">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target="_blank" rel="noopener noreferrer">Semantic Versioning</a>.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="200---2026-09-16"><a href="https://github.com/StevenDahFish/fish/compare/v1.1.8...v2.0.0" target="_blank" rel="noopener noreferrer">2.0.0</a> - 2026-09-16<a href="#200---2026-09-16" class="hash-link" aria-label="Direct link to 200---2026-09-16" title="Direct link to 200---2026-09-16">​</a></h2>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="201---2026-09-16">[2.0.1] - 2026-09-16<a href="#201---2026-09-16" class="hash-link" aria-label="Direct link to [2.0.1] - 2026-09-16" title="Direct link to [2.0.1] - 2026-09-16">​</a></h2>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="added">Added<a href="#added" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<ul>
+<li>Temporary download links for a newer compiled wally-package-types</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed">Fixed<a href="#fixed" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<ul>
+<li>Potential bug with client failing to access a game&#x27;s service out of studio (fixes <a href="https://github.com/StevenDahFish/fish/issues/1" target="_blank" rel="noopener noreferrer">#1</a>)</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed">Removed<a href="#removed" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
+<ul>
+<li>Unused ReplicatedStorage reference from Client</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="200---2026-09-16"><a href="https://github.com/StevenDahFish/fish/compare/v1.1.8...v2.0.0" target="_blank" rel="noopener noreferrer">2.0.0</a> - 2026-09-16<a href="#200---2026-09-16" class="hash-link" aria-label="Direct link to 200---2026-09-16" title="Direct link to 200---2026-09-16">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-1">Added<a href="#added-1" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>fish.ServiceToReference type to automatically create the client reference of a service</li>
 <li>Services can now specify a load order which affects which Start function runs first</li>
@@ -39,13 +52,13 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <li>Server started indicator is now an attribute instead of an instance</li>
 <li>Documentation now using primarily Docusaurus with Moonwave as a plugin</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed">Fixed<a href="#fixed" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-1">Fixed<a href="#fixed-1" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
 <ul>
 <li>Functions in Client.Signal not being included in the client reference type</li>
 <li>Calling another client function using self<!-- -->:OtherClientFunction<!-- -->() passing the first argument as the player</li>
 <li>Incorrect usages/references on now changed features from <a href="#118---2025-11-09">v1.1.8</a> for certain parts of the documentation</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed">Removed<a href="#removed" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed-1">Removed<a href="#removed-1" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
 <ul>
 <li>Mutex Wally dependency</li>
 <li>Removing the client folder in StarterPlayerScripts when obfuscation is enabled, as the client is no longer copied into PlayerScripts</li>
@@ -60,7 +73,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <li>You must now import fish the same way done on the server due to the need to access fish.ControllerDef</li>
 <li>You must now cast fish.ServiceDef or fish.ControllerDef when defining a service or controller respectively</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-1">Fixed<a href="#fixed-1" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-2">Fixed<a href="#fixed-2" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
 <ul>
 <li>Changed all references to &quot;server&quot; type in services to use &quot;self&quot; instead due to context being missed</li>
 <li>Converts Client.Signal in services into a table if it isn&#x27;t one (fixes type being inaccurate)</li>
@@ -72,12 +85,12 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <li>self.confirm() now returns the value passed to it, similar to assert()</li>
 <li>Clarified error message on client when obfuscation is enabled</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-2">Fixed<a href="#fixed-2" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-3">Fixed<a href="#fixed-3" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
 <ul>
 <li>Type definition causing inability to reference service/controller using variable</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="116---2025-09-13"><a href="https://github.com/StevenDahFish/fish/compare/v1.1.5...v1.1.6" target="_blank" rel="noopener noreferrer">1.1.6</a> - 2025-09-13<a href="#116---2025-09-13" class="hash-link" aria-label="Direct link to 116---2025-09-13" title="Direct link to 116---2025-09-13">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-1">Added<a href="#added-1" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-2">Added<a href="#added-2" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>Documentation for fish</li>
 <li>Client.Signal table in services as a different way to create a signal and listen to it</li>
@@ -93,7 +106,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <li>Due to limitations of how self.confirm() was implemented, errors in services will no longer be sent to the client while playtesting in Studio</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="115---2025-03-15"><a href="https://github.com/StevenDahFish/fish/compare/v1.1.4...v1.1.5" target="_blank" rel="noopener noreferrer">1.1.5</a> - 2025-03-15<a href="#115---2025-03-15" class="hash-link" aria-label="Direct link to 115---2025-03-15" title="Direct link to 115---2025-03-15">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-2">Added<a href="#added-2" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-3">Added<a href="#added-3" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>If a service/controller is attempted to be created even though its &quot;@load&quot; declares otherwise, a warning will be outputted</li>
 <li>Description about the &quot;@load&quot; module functionality for controllers in the documentation</li>
@@ -103,12 +116,12 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <li>When creating controllers, you now need to provide its own instance for &quot;@load&quot; warnings to work</li>
 <li>Controllers in the test folder now provide its own script instance as required in this version</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-3">Fixed<a href="#fixed-3" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-4">Fixed<a href="#fixed-4" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
 <ul>
 <li>&quot;@load&quot; module being required when either .serviceDeep() or .controllerDeep() was being used</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="114---2025-03-06"><a href="https://github.com/StevenDahFish/fish/compare/v1.1.3...v1.1.4" target="_blank" rel="noopener noreferrer">1.1.4</a> - 2025-03-06<a href="#114---2025-03-06" class="hash-link" aria-label="Direct link to 114---2025-03-06" title="Direct link to 114---2025-03-06">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-4">Fixed<a href="#fixed-4" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-5">Fixed<a href="#fixed-5" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
 <ul>
 <li>Multiple of the same directories being made when structuring for the client with .serviceDeep()</li>
 </ul>
@@ -117,12 +130,12 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <li>Services in the tests folder now provide its own script instance as required in v1.1.2</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="113---2025-02-24"><a href="https://github.com/StevenDahFish/fish/compare/v1.1.2...v1.1.3" target="_blank" rel="noopener noreferrer">1.1.3</a> - 2025-02-24<a href="#113---2025-02-24" class="hash-link" aria-label="Direct link to 113---2025-02-24" title="Direct link to 113---2025-02-24">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-3">Added<a href="#added-3" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-4">Added<a href="#added-4" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>&quot;@load&quot; module functionality for controllers</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="112---2025-02-22"><a href="https://github.com/StevenDahFish/fish/compare/v1.1.1...v1.1.2" target="_blank" rel="noopener noreferrer">1.1.2</a> - 2025-02-22<a href="#112---2025-02-22" class="hash-link" aria-label="Direct link to 112---2025-02-22" title="Direct link to 112---2025-02-22">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-4">Added<a href="#added-4" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-5">Added<a href="#added-5" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>Directory structuring when adding services with .serviceDeep()</li>
 <li>You can provide an &quot;@load&quot; module in the same directory as a service that returns a function that returns a boolean that determines whether a module should be loaded on start</li>
@@ -131,26 +144,26 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <ul>
 <li>When creating services, you now need to provide its own script instance for directory structuring to work</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-5">Fixed<a href="#fixed-5" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-6">Fixed<a href="#fixed-6" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
 <ul>
 <li>Type definitions with extra whitespace</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed-1">Removed<a href="#removed-1" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed-2">Removed<a href="#removed-2" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
 <ul>
 <li>getServiceNames() from Client as it was redundant</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="111---2025-01-08"><a href="https://github.com/StevenDahFish/fish/compare/v1.1.0...v1.1.1" target="_blank" rel="noopener noreferrer">1.1.1</a> - 2025-01-08<a href="#111---2025-01-08" class="hash-link" aria-label="Direct link to 111---2025-01-08" title="Direct link to 111---2025-01-08">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-5">Added<a href="#added-5" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-6">Added<a href="#added-6" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>Controllers can now specify a load order which affects which Start function runs first</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed-2">Removed<a href="#removed-2" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed-3">Removed<a href="#removed-3" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
 <ul>
 <li>Unused Wally dependency Cmdr</li>
 <li>Redundant Wally dependency TableUtil</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="110---2024-09-22"><a href="https://github.com/StevenDahFish/fish/compare/v1.0.9...v1.1.0" target="_blank" rel="noopener noreferrer">1.1.0</a> - 2024-09-22<a href="#110---2024-09-22" class="hash-link" aria-label="Direct link to 110---2024-09-22" title="Direct link to 110---2024-09-22">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-6">Added<a href="#added-6" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-7">Added<a href="#added-7" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>Mutex integration into client functions of services</li>
 </ul>
@@ -159,13 +172,13 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <ul>
 <li>ClientService reference is no longer public in the Client module</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-6">Fixed<a href="#fixed-6" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-7">Fixed<a href="#fixed-7" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
 <ul>
 <li>The Start function on services will now run if the Client table is empty</li>
 <li>If the server takes longer to load, the client will now properly wait to initialize</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="108---2024-08-29"><a href="https://github.com/StevenDahFish/fish/compare/v1.0.7...v1.0.8" target="_blank" rel="noopener noreferrer">1.0.8</a> - 2024-08-29<a href="#108---2024-08-29" class="hash-link" aria-label="Direct link to 108---2024-08-29" title="Direct link to 108---2024-08-29">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-7">Added<a href="#added-7" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-8">Added<a href="#added-8" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>Limitations section to README about cyclic dependencies</li>
 <li>Home page to documentation site</li>
@@ -175,17 +188,17 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <ul>
 <li>Services that have nothing in the Client table (has nothing public) is hidden from the client entirely</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-7">Fixed<a href="#fixed-7" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-8">Fixed<a href="#fixed-8" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
 <ul>
 <li>Added <code>@ignore</code> comment to ClientRemoteSignal and ClientRemoteProperty types to prevent being added to documentation site</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="107---2024-08-12"><a href="https://github.com/StevenDahFish/fish/compare/v1.0.6...v1.0.7" target="_blank" rel="noopener noreferrer">1.0.7</a> - 2024-08-12<a href="#107---2024-08-12" class="hash-link" aria-label="Direct link to 107---2024-08-12" title="Direct link to 107---2024-08-12">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-8">Added<a href="#added-8" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-9">Added<a href="#added-9" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>ClientRemoteSignal and ClientRemoteProperty types to DependencyTypes.lua and exported them in root (init.lua) in order to be importable by service modules</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="106---2024-08-10"><a href="https://github.com/StevenDahFish/fish/compare/v1.0.5...v1.0.6" target="_blank" rel="noopener noreferrer">1.0.6</a> - 2024-08-10<a href="#106---2024-08-10" class="hash-link" aria-label="Direct link to 106---2024-08-10" title="Direct link to 106---2024-08-10">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-9">Added<a href="#added-9" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-10">Added<a href="#added-10" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>Documentation to the entire project using <a href="https://github.com/evaera/moonwave" target="_blank" rel="noopener noreferrer">Moonwave</a></li>
 </ul>
@@ -194,11 +207,11 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <li>Moved server started object indicator into the package instead of ReplicatedFirst to prevent potential future interference with the client starting</li>
 <li>README was changed to include information about documentation</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed-3">Removed<a href="#removed-3" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed-4">Removed<a href="#removed-4" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
 <ul>
 <li>A <code>!nonstrict</code> comment that was put in Server.lua mistakenly during testing</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-8">Fixed<a href="#fixed-8" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="fixed-9">Fixed<a href="#fixed-9" class="hash-link" aria-label="Direct link to Fixed" title="Direct link to Fixed">​</a></h3>
 <ul>
 <li>Invalid reference in ClientService.lua when ran in context</li>
 </ul>
@@ -214,7 +227,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <li>Update require paths to be relative</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="101---2024-08-09"><a href="https://github.com/StevenDahFish/fish/compare/v1.0.0...v1.0.1" target="_blank" rel="noopener noreferrer">1.0.1</a> - 2024-08-09<a href="#101---2024-08-09" class="hash-link" aria-label="Direct link to 101---2024-08-09" title="Direct link to 101---2024-08-09">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-10">Added<a href="#added-10" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-11">Added<a href="#added-11" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>This CHANGELOG file.</li>
 <li>Comments to describe the type definitions</li>
@@ -224,15 +237,15 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html" target
 <ul>
 <li>.luaurc now ignores type error &quot;LocalShadow&quot; due to impeding imports of services in controllers</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed-4">Removed<a href="#removed-4" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="removed-5">Removed<a href="#removed-5" class="hash-link" aria-label="Direct link to Removed" title="Direct link to Removed">​</a></h3>
 <ul>
 <li>Unused Roblox service references in tests</li>
 <li>Irrelevant TODO comments</li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="100---2024-08-09"><a href="https://github.com/StevenDahFish/fish/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer">1.0.0</a> - 2024-08-09<a href="#100---2024-08-09" class="hash-link" aria-label="Direct link to 100---2024-08-09" title="Direct link to 100---2024-08-09">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-11">Added<a href="#added-11" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="added-12">Added<a href="#added-12" class="hash-link" aria-label="Direct link to Added" title="Direct link to Added">​</a></h3>
 <ul>
 <li>The base functionality of the entire framework!</li>
-</ul></article></div><div class="col col--2"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#200---2026-09-16" class="table-of-contents__link toc-highlight">2.0.0 - 2026-09-16</a><ul><li><a href="#added" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed" class="table-of-contents__link toc-highlight">Fixed</a></li><li><a href="#removed" class="table-of-contents__link toc-highlight">Removed</a></li></ul></li><li><a href="#118---2025-11-09" class="table-of-contents__link toc-highlight">1.1.8 - 2025-11-09</a><ul><li><a href="#changed-1" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-1" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#117---2025-10-17" class="table-of-contents__link toc-highlight">1.1.7 - 2025-10-17</a><ul><li><a href="#changed-2" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-2" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#116---2025-09-13" class="table-of-contents__link toc-highlight">1.1.6 - 2025-09-13</a><ul><li><a href="#added-1" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-3" class="table-of-contents__link toc-highlight">Changed</a></li></ul></li><li><a href="#115---2025-03-15" class="table-of-contents__link toc-highlight">1.1.5 - 2025-03-15</a><ul><li><a href="#added-2" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-4" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-3" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#114---2025-03-06" class="table-of-contents__link toc-highlight">1.1.4 - 2025-03-06</a><ul><li><a href="#fixed-4" class="table-of-contents__link toc-highlight">Fixed</a></li><li><a href="#changed-5" class="table-of-contents__link toc-highlight">Changed</a></li></ul></li><li><a href="#113---2025-02-24" class="table-of-contents__link toc-highlight">1.1.3 - 2025-02-24</a><ul><li><a href="#added-3" class="table-of-contents__link toc-highlight">Added</a></li></ul></li><li><a href="#112---2025-02-22" class="table-of-contents__link toc-highlight">1.1.2 - 2025-02-22</a><ul><li><a href="#added-4" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-6" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-5" class="table-of-contents__link toc-highlight">Fixed</a></li><li><a href="#removed-1" class="table-of-contents__link toc-highlight">Removed</a></li></ul></li><li><a href="#111---2025-01-08" class="table-of-contents__link toc-highlight">1.1.1 - 2025-01-08</a><ul><li><a href="#added-5" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#removed-2" class="table-of-contents__link toc-highlight">Removed</a></li></ul></li><li><a href="#110---2024-09-22" class="table-of-contents__link toc-highlight">1.1.0 - 2024-09-22</a><ul><li><a href="#added-6" class="table-of-contents__link toc-highlight">Added</a></li></ul></li><li><a href="#109---2024-09-13" class="table-of-contents__link toc-highlight">1.0.9 - 2024-09-13</a><ul><li><a href="#changed-7" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-6" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#108---2024-08-29" class="table-of-contents__link toc-highlight">1.0.8 - 2024-08-29</a><ul><li><a href="#added-7" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-8" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-7" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#107---2024-08-12" class="table-of-contents__link toc-highlight">1.0.7 - 2024-08-12</a><ul><li><a href="#added-8" class="table-of-contents__link toc-highlight">Added</a></li></ul></li><li><a href="#106---2024-08-10" class="table-of-contents__link toc-highlight">1.0.6 - 2024-08-10</a><ul><li><a href="#added-9" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-9" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#removed-3" class="table-of-contents__link toc-highlight">Removed</a></li><li><a href="#fixed-8" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#105---2024-08-10" class="table-of-contents__link toc-highlight">1.0.5 - 2024-08-10</a><ul><li><a href="#changed-10" class="table-of-contents__link toc-highlight">Changed</a></li></ul></li><li><a href="#102---104---2024-08-10" class="table-of-contents__link toc-highlight">1.0.2 - 1.0.4 - 2024-08-10</a><ul><li><a href="#changed-11" class="table-of-contents__link toc-highlight">Changed</a></li></ul></li><li><a href="#101---2024-08-09" class="table-of-contents__link toc-highlight">1.0.1 - 2024-08-09</a><ul><li><a href="#added-10" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-12" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#removed-4" class="table-of-contents__link toc-highlight">Removed</a></li></ul></li><li><a href="#100---2024-08-09" class="table-of-contents__link toc-highlight">1.0.0 - 2024-08-09</a><ul><li><a href="#added-11" class="table-of-contents__link toc-highlight">Added</a></li></ul></li></ul></div></div></div></main></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2026 StevenDahFish. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
+</ul></article></div><div class="col col--2"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#201---2026-09-16" class="table-of-contents__link toc-highlight">[2.0.1] - 2026-09-16</a><ul><li><a href="#added" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#fixed" class="table-of-contents__link toc-highlight">Fixed</a></li><li><a href="#removed" class="table-of-contents__link toc-highlight">Removed</a></li></ul></li><li><a href="#200---2026-09-16" class="table-of-contents__link toc-highlight">2.0.0 - 2026-09-16</a><ul><li><a href="#added-1" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-1" class="table-of-contents__link toc-highlight">Fixed</a></li><li><a href="#removed-1" class="table-of-contents__link toc-highlight">Removed</a></li></ul></li><li><a href="#118---2025-11-09" class="table-of-contents__link toc-highlight">1.1.8 - 2025-11-09</a><ul><li><a href="#changed-1" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-2" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#117---2025-10-17" class="table-of-contents__link toc-highlight">1.1.7 - 2025-10-17</a><ul><li><a href="#changed-2" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-3" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#116---2025-09-13" class="table-of-contents__link toc-highlight">1.1.6 - 2025-09-13</a><ul><li><a href="#added-2" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-3" class="table-of-contents__link toc-highlight">Changed</a></li></ul></li><li><a href="#115---2025-03-15" class="table-of-contents__link toc-highlight">1.1.5 - 2025-03-15</a><ul><li><a href="#added-3" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-4" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-4" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#114---2025-03-06" class="table-of-contents__link toc-highlight">1.1.4 - 2025-03-06</a><ul><li><a href="#fixed-5" class="table-of-contents__link toc-highlight">Fixed</a></li><li><a href="#changed-5" class="table-of-contents__link toc-highlight">Changed</a></li></ul></li><li><a href="#113---2025-02-24" class="table-of-contents__link toc-highlight">1.1.3 - 2025-02-24</a><ul><li><a href="#added-4" class="table-of-contents__link toc-highlight">Added</a></li></ul></li><li><a href="#112---2025-02-22" class="table-of-contents__link toc-highlight">1.1.2 - 2025-02-22</a><ul><li><a href="#added-5" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-6" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-6" class="table-of-contents__link toc-highlight">Fixed</a></li><li><a href="#removed-2" class="table-of-contents__link toc-highlight">Removed</a></li></ul></li><li><a href="#111---2025-01-08" class="table-of-contents__link toc-highlight">1.1.1 - 2025-01-08</a><ul><li><a href="#added-6" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#removed-3" class="table-of-contents__link toc-highlight">Removed</a></li></ul></li><li><a href="#110---2024-09-22" class="table-of-contents__link toc-highlight">1.1.0 - 2024-09-22</a><ul><li><a href="#added-7" class="table-of-contents__link toc-highlight">Added</a></li></ul></li><li><a href="#109---2024-09-13" class="table-of-contents__link toc-highlight">1.0.9 - 2024-09-13</a><ul><li><a href="#changed-7" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-7" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#108---2024-08-29" class="table-of-contents__link toc-highlight">1.0.8 - 2024-08-29</a><ul><li><a href="#added-8" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-8" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#fixed-8" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#107---2024-08-12" class="table-of-contents__link toc-highlight">1.0.7 - 2024-08-12</a><ul><li><a href="#added-9" class="table-of-contents__link toc-highlight">Added</a></li></ul></li><li><a href="#106---2024-08-10" class="table-of-contents__link toc-highlight">1.0.6 - 2024-08-10</a><ul><li><a href="#added-10" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-9" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#removed-4" class="table-of-contents__link toc-highlight">Removed</a></li><li><a href="#fixed-9" class="table-of-contents__link toc-highlight">Fixed</a></li></ul></li><li><a href="#105---2024-08-10" class="table-of-contents__link toc-highlight">1.0.5 - 2024-08-10</a><ul><li><a href="#changed-10" class="table-of-contents__link toc-highlight">Changed</a></li></ul></li><li><a href="#102---104---2024-08-10" class="table-of-contents__link toc-highlight">1.0.2 - 1.0.4 - 2024-08-10</a><ul><li><a href="#changed-11" class="table-of-contents__link toc-highlight">Changed</a></li></ul></li><li><a href="#101---2024-08-09" class="table-of-contents__link toc-highlight">1.0.1 - 2024-08-09</a><ul><li><a href="#added-11" class="table-of-contents__link toc-highlight">Added</a></li><li><a href="#changed-12" class="table-of-contents__link toc-highlight">Changed</a></li><li><a href="#removed-5" class="table-of-contents__link toc-highlight">Removed</a></li></ul></li><li><a href="#100---2024-08-09" class="table-of-contents__link toc-highlight">1.0.0 - 2024-08-09</a><ul><li><a href="#added-12" class="table-of-contents__link toc-highlight">Added</a></li></ul></li></ul></div></div></div></main></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2026 StevenDahFish. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
 </body>
 </html>
