@@ -4,6 +4,7 @@
 	Contains the server functionality of fish framework
 ]=]
 
+const HttpService = game:GetService("HttpService")
 const RunService = game:GetService("RunService")
 const Players = game:GetService("Players")
 const Server = {}
@@ -709,10 +710,21 @@ function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedProm
 					
 					-- Expose parent to client
 					local serviceFolder = assert(servicesFolder:FindFirstChild(metadata.Name) :: Folder?)
-					local serviceScriptInstance: ModuleScript = metadata.Instance
-					local fullNameSegments = serviceScriptInstance:GetFullName():split(".")
-					fullNameSegments[#fullNameSegments] = nil
-					serviceFolder:SetAttribute("Parent", table.concat(fullNameSegments, "."))
+					local path: {string} = {}
+					local rootService: string? = nil
+					local current: Instance? = metadata.Instance.Parent
+					while current ~= nil and current ~= game do
+						if current.Parent == game then
+							local ok, found = pcall(game.FindService, game, current.ClassName)
+							if ok and found == current then
+								rootService = current.ClassName
+								break
+							end
+						end
+						table.insert(path, 1, current.Name)
+						current = current.Parent
+					end
+					serviceFolder:SetAttribute("Parent", HttpService:JSONEncode({Service = rootService, Path = path}))
 
 					service.__fishMetadata = nil
 					service:Start()

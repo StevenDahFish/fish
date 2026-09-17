@@ -4,7 +4,6 @@
 	Contains the client functionality of fish framework
 ]=]
 
-const ReplicatedStorage = game:GetService("ReplicatedStorage")
 const ServerStorage = game:GetService("ServerStorage")
 const HttpService = game:GetService("HttpService")
 const RunService = game:GetService("RunService")
@@ -316,13 +315,14 @@ if RunService:IsClient() then
 	local servicesFolder = assert(script.Parent:FindFirstChild("Services") :: Folder?)
 	local serviceFolders = servicesFolder:GetChildren() :: {Folder}
 	for _, serviceFolder in serviceFolders do
-		local currentLocation: Instance = game
 		local parent = serviceFolder:GetAttribute("Parent") :: string?
 		if parent == nil then
 			serviceFolder:GetAttributeChangedSignal("Parent"):Wait()
 			parent = serviceFolder:GetAttribute("Parent") :: string?
 		end
-		for _, childName in assert(parent):split(".") do
+		local location = HttpService:JSONDecode(assert(parent))
+		local currentLocation: Instance = if location.Service then game:GetService(location.Service) else game
+		for _, childName in location.Path do
 			local existingLocation = currentLocation:FindFirstChild(childName)
 			if existingLocation ~= nil then
 				currentLocation = existingLocation

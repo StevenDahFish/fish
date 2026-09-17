@@ -4,9 +4,21 @@ sidebar_position: 8
 ---
 
 ### How to use wally-package-types?
+:::warning
+As of **September 16th, 2026**, wally-package-types has not published a new release that updates its internals to be able to understand `const` statements (the fix for this is stuck in their backlog). Because of this, using their latest release on a fish v2 project will result in type errors.
+
+However, I have manually compiled an updated version that fixes this problem. Use these downloads for now until their project gets a new release.
+
+* [**wally-package-types-linux-aarch64.zip**](https://cdn.stevendah.fish/fish/wally-package-types-linux-aarch64.zip)
+* [**wally-package-types-linux-x86_64.zip**](https://cdn.stevendah.fish/fish/wally-package-types-linux-x86_64.zip)
+* [**wally-package-types-macos-aarch64.zip**](https://cdn.stevendah.fish/fish/wally-package-types-macos-aarch64.zip)
+* [**wally-package-types-macos.zip**](https://cdn.stevendah.fish/fish/wally-package-types-macos.zip)
+* [**wally-package-types-win64.zip**](https://cdn.stevendah.fish/fish/wally-package-types-win64.zip)
+:::
 [wally-package-types](https://github.com/JohnnyMorganz/wally-package-types) is required in order to properly export the types from [wally](https://wally.run) packages and make them accessible. fish exposes many types which are necessary to use the framework, therefore this tool is needed.
 
-1. [Install](https://github.com/JohnnyMorganz/wally-package-types/releases) the latest version from releases for your operating system and add it to your [PATH](https://learn.sparkfun.com/tutorials/configuring-the-path-system-variable/all).
+<!-- 1. [Install](https://github.com/JohnnyMorganz/wally-package-types/releases) the latest version from releases for your operating system and add it to your [PATH](https://learn.sparkfun.com/tutorials/configuring-the-path-system-variable/all). -->
+1. **Install** (from the warning notice above) the latest version from releases for your operating system and add it to your [PATH](https://learn.sparkfun.com/tutorials/configuring-the-path-system-variable/all).
 1. Run `wally install` first to install all of your packages.
 1. Generate a sourcemap using `rojo sourcemap --output sourcemap.json`
 1. Run `wally-package-types --sourcemap sourcemap.json Packages` to add types to your packages.
