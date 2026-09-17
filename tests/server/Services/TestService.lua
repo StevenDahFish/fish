@@ -1,16 +1,16 @@
 --// Services
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerStorage = game:GetService("ServerStorage")
+const Players = game:GetService("Players")
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
+const ServerStorage = game:GetService("ServerStorage")
 
 --// Core
-local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
-local t = require(ReplicatedStorage.Packages.t)
-local TestService = {Client = {Signal = {}}}
+const fish = require(ReplicatedStorage.Packages.fish); const fish = fish.Server
+const t = require(ReplicatedStorage.Packages.t)
+const TestService = {Client = {Signal = {}}}
 
 --// Dependencies
-local ExampleModule = require(ServerStorage.Server.Modules.ExampleModule)
-local OtherService = require(script.Parent.OtherService)
+const OtherService = require("./OtherService")
+const ExampleModule = require(ServerStorage.Server.Modules.ExampleModule)
 
 --// Constants
 

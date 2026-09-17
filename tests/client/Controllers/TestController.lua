@@ -1,20 +1,17 @@
---// Services
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerStorage = game:GetService("ServerStorage")
+-- Services
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
 
---// Core
-local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Client
-local TestController = {}
+-- Core
+const fish = require(ReplicatedStorage.Packages.fish); const fish = fish.Client
+const TestController = {}
 
---// Dependencies
-local TestService = require(ServerStorage.Server.Services.TestService); local TestService = TestService :: TestService.reference
-local ExampleController = require(script.Parent.ExampleController)
+-- Dependencies
+const TestService = require("@game/ServerStorage/Server/Services/TestService"); const TestService = (TestService :: unknown) :: TestService.reference
+const ExampleController = require("./ExampleController")
 
---// Constants
+-- Variables
 
---// Variables
-
---// Functions
+-- Functions
 function TestController.Start(self: self)
 	warn("TestController started!")
 	ExampleController:OtherFunction()

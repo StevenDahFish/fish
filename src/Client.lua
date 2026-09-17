@@ -4,24 +4,37 @@
 	Contains the client functionality of fish framework
 ]=]
 
-local HttpService = game:GetService("HttpService")
-local RunService = game:GetService("RunService")
-local ServerStorage = game:GetService("ServerStorage")
-local StarterPlayer = game:GetService("StarterPlayer")
-local Client = {}
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
+const ServerStorage = game:GetService("ServerStorage")
+const HttpService = game:GetService("HttpService")
+const RunService = game:GetService("RunService")
+const Client = {}
 
 --// Dependencies
-local ClientComm = require(script.Parent.Parent.Comm).ClientComm
-local Promise = require(script.Parent.Parent.Promise)
-local Signal = require(script.Parent.Parent.Signal)
-local fish = require(script.Parent.Types)
+const ClientComm = require(script.Parent.Parent.Comm).ClientComm
+const Promise = require(script.Parent.Parent.Promise)
+const Signal = require(script.Parent.Parent.Signal)
+const fish = require(script.Parent.Types)
+
+--[=[
+	@ignore
+	@type PromiseEvent<T...> { Connect: (self: any, callback: (T...) -> ...any) -> { Disconnect: (self: any) -> ...any, [any]: any } }
+	@within Client
+	The event shape `Promise.fromEvent` accepts.
+	`Signal.Connection` and the connection type `Promise.fromEvent` expects are identical
+	apart from the latter's `[any]: any` indexer, which makes the two mutually
+	incompatible, so the signal is described with this type at the call site.
+]=]
+type PromiseEvent<T...> = {
+	Connect: (self: any, callback: (T...) -> ...any) -> { Disconnect: (self: any) -> ...any, [any]: any }
+}
 
 --// Constants & Variables
-local controllers: {[string]: fish.Controller<unknown>} = {}
+local controllers: {[string]: fish.RegisteredController} = {}
 local services: {[string]: fish.ServiceRef} = {}
 local started = false
 local isStarting = false
-local startedSignal = Signal.new()
+local startedSignal: Signal.Signal<> = Signal.new()
 local generatedObfuscationString: string?
 
 --[=[
@@ -47,7 +60,7 @@ local function buildService(serviceDefinition: Folder): fish.ServiceRef
 		if args[1] == "__fish_caught_error" then
 			if args[2] == "__fish_unknown_error" then
 				if RunService:IsStudio() then
-					error("An error has occurred on the server! (fish framework does not send error messages to the client while running in Studio with obfuscation enabled)\n", 0)
+					error("An error has occurred on the server! (fish framework does not send error messages to the client while running in Studio with confirm() enabled)\n", 0)
 				else
 					error("Unknown error\n", 0)
 				end
@@ -103,7 +116,7 @@ function Client.controller<T>(controller: string | ModuleScript, definition: (fi
 
 		assert(not started, "Controller cannot be added after calling \"fish.Start()\"")
 
-		local controller = definition :: fish.ControllerDef<T>
+		local controller = definition :: fish.RegisteredController
 
 		if type(controller.Client) ~= "table" then
 			controller.Client = {}
@@ -206,8 +219,8 @@ function Client.start(obfuscate: boolean?): Promise.TypedPromise<>
 		isStarting = true
 
 		-- Sort controller load order by priority
-		local hasPriority: {fish.Controller<unknown>} = {}
-		local noPriority: {fish.Controller<unknown>} = {}
+		local hasPriority: {fish.RegisteredController} = {}
+		local noPriority: {fish.RegisteredController} = {}
 		for _, controller in controllers do
 			if controller.LoadPriority then
 				table.insert(hasPriority, controller)
@@ -215,11 +228,11 @@ function Client.start(obfuscate: boolean?): Promise.TypedPromise<>
 				table.insert(noPriority, controller)
 			end
 		end
-		table.sort(hasPriority, function(a: fish.Controller<unknown>, b: fish.Controller<unknown>)
+		table.sort(hasPriority, function(a: fish.RegisteredController, b: fish.RegisteredController)
 			return (a.LoadPriority :: number) > (b.LoadPriority :: number)
 		end)
 		
-		local sortedControllers: {fish.Controller<unknown>} = {}
+		local sortedControllers: {fish.RegisteredController} = {}
 		for _, controller in ipairs(hasPriority) do
 			table.insert(sortedControllers, controller)
 		end
@@ -254,13 +267,10 @@ function Client.start(obfuscate: boolean?): Promise.TypedPromise<>
 			table.freeze(services)
 			
 			for _, controller in controllers do
-				controller.__fishMetadata.Instance.Name = generateObfuscationString()
-				controller.__fishMetadata.Instance.Parent = game
+				local metadata = assert(controller.__fishMetadata)
+				metadata.Instance.Name = generateObfuscationString()
+				metadata.Instance.Parent = game
 				controller.__fishMetadata = nil
-			end
-			local client = StarterPlayer:WaitForChild("StarterPlayerScripts"):FindFirstChild("Client")
-			if client ~= nil then
-				client:Destroy()
 			end
 			table.clear(controllers)
 			table.freeze(controllers)
@@ -268,7 +278,8 @@ function Client.start(obfuscate: boolean?): Promise.TypedPromise<>
 
 		return Promise.new(function(resolve)
 			for _, controller in ipairs(sortedControllers) do
-				Promise.try(function()
+				Promise.try(function(): ()
+					controller.__fishMetadata = nil
 					controller:Start()
 				end)
 			end
@@ -290,7 +301,7 @@ function Client.onStart(): Promise.TypedPromise<>
 	if started then
 		return Promise.resolve()
 	else
-		return Promise.fromEvent(startedSignal) :: Promise.TypedPromise<>
+		return Promise.fromEvent(startedSignal :: PromiseEvent<>)
 	end
 end
 

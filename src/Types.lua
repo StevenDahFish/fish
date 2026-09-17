@@ -6,18 +6,17 @@
 local PromiseModule = require(script.Parent.Parent.Promise)
 
 --[=[
-	@type ServiceDef<T> T & { Client: {[any]: any}?, Start: ((any) -> any)?, [any]: any }
+	@type ServiceDef<T> T & { Client: {[any]: any}?, Start: ((any) -> any)? }
 	@within Types
 	The definition of a service when created using `fish.service(name, serviceDef)`
 ]=]
 export type ServiceDef<T> = T & {
 	Client: {[any]: any}?,
-	Start: ((any) -> any)?,
-	[any]: any
+	Start: ((any) -> any)?
 }
 
 --[=[
-	@type Service<T> T & { Client: { Server: T, Signal: { Server: T, [any]: any }, [any]: any }, Start: (any) -> any, LoadPriority: number?, [any]: any }
+	@type Service<T> T & { Client: { Server: T, Signal: { Server: T } }, Start: (any) -> any, LoadPriority: number? }
 	@within Types
 	A service as seen in the server context
 ]=]
@@ -25,14 +24,11 @@ export type Service<T> = T & {
 	Client: {
 		Server: T,
 		Signal: {
-			Server: T,
-			[any]: any
-		},
-		[any]: any 
+			Server: T
+		}
 	},
 	Start: (any) -> any,
-	LoadPriority: number?,
-	[any]: any
+	LoadPriority: number?
 }
 
 --[=[
@@ -45,23 +41,91 @@ export type ServiceRef = {
 }
 
 --[=[
-	@type ControllerDef<T> T & { Start: ((any) -> any)?, [any]: any }
+	@type ControllerDef<T> T & { Start: ((any) -> any)? }
 	@within Types
 	The definition of a controller when created using `fish.controller(name, controllerDef)`
 ]=]
 export type ControllerDef<T> = T & {
-	Start: ((any) -> any)?,
-	[any]: any
+	Start: ((any) -> any)?
 }
 
 --[=[
-	@type Controller<T> T & { Start: (any) -> any, LoadPriority: number?, [any]: any }
+	@type Controller<T> T & { Start: (any) -> any, LoadPriority: number? }
 	@within Types
 	A controller as seen in the client context
 ]=]
 export type Controller<T> = T & {
 	Start: (any) -> any,
+	LoadPriority: number?
+}
+
+--[=[
+	@type Confirm <T>(value: T?) -> T
+	@within Types
+	A silent assert. When the given value is falsy the current thread is stopped, which is
+	equivalent to returning early; otherwise the value is returned with `nil` removed from
+	its type.
+]=]
+export type Confirm = <T>(value: T?) -> T
+
+--[=[
+	@type Mutex { Lock: (self, number?, Player?) -> (), Unlock: (self, Player?) -> (), Wrap: <A..., R...>(self, number?, (Confirm, A...) -> R..., A...) -> (boolean, R...), WrapPlayer: <A..., R...>(self, number?, Player, (Confirm, A...) -> R..., A...) -> (boolean, R...) }
+	@within Types
+	Thread locking for a client function.
+]=]
+export type Mutex = {
+	Lock: (self: Mutex, expectedMaxRuntimeSeconds: number?, player: Player?) -> (),
+	Unlock: (self: Mutex, player: Player?) -> (),
+	Wrap: <A..., R...>(self: Mutex, expectedMaxRuntimeSeconds: number?, func: (Confirm, A...) -> R..., A...) -> (boolean, R...),
+	WrapPlayer: <A..., R...>(self: Mutex, expectedMaxRuntimeSeconds: number?, player: Player, func: (Confirm, A...) -> R..., A...) -> (boolean, R...)
+}
+
+--[=[
+	@ignore
+	@type ServiceMetadata { Instance: ModuleScript, Name: string }
+	@within Types
+	Bookkeeping attached to a service while it is registered; removed once the service starts
+]=]
+export type ServiceMetadata = {
+	Instance: ModuleScript,
+	Name: string
+}
+
+--[=[
+	@ignore
+	@type ControllerMetadata { Instance: ModuleScript }
+	@within Types
+	Bookkeeping attached to a controller while it is registered; removed once the controller starts
+]=]
+export type ControllerMetadata = {
+	Instance: ModuleScript
+}
+
+--[=[
+	@ignore
+	@type RegisteredService { Client: {[any]: any}?, Start: (any) -> any, LoadPriority: number?, __fishMetadata: ServiceMetadata?, [any]: any }
+	@within Types
+	A registered service as the framework handles it internally, before it is handed back to the caller as [Service]
+]=]
+export type RegisteredService = {
+	Client: {[any]: any}?,
+	Start: (any) -> any,
 	LoadPriority: number?,
+	__fishMetadata: ServiceMetadata?,
+	[any]: any
+}
+
+--[=[
+	@ignore
+	@type RegisteredController { Client: {[any]: any}?, Start: (any) -> any, LoadPriority: number?, __fishMetadata: ControllerMetadata?, [any]: any }
+	@within Types
+	A registered controller as the framework handles it internally, before it is handed back to the caller as [Controller]
+]=]
+export type RegisteredController = {
+	Client: {[any]: any}?,
+	Start: (any) -> any,
+	LoadPriority: number?,
+	__fishMetadata: ControllerMetadata?,
 	[any]: any
 }
 
@@ -538,11 +602,11 @@ export type function ServiceToReference(service: type)
     end
 
 	--[=[
-		@type function ToClient (type: type) -> (ClientRemoteSignal | ClientRemoteProperty | ((...any) -> Promise.TypedPromise<...any>) | never)
-		@within TypeFunctions
+		@type ToClient (type: type) -> (ClientRemoteSignal | ClientRemoteProperty | ((...any) -> Promise.TypedPromise<...any>) | never)
+		@within Types
 		A type function used to convert various server implementations into their client counterpart
 	]=]
-	local function ToClient(type: type)
+	local function ToClient(type: type): type
 		-- convert RemoteSignal/RemoteProperty to their client counterpart
 		if type:is("table") then
 			local instanceType = type:readproperty(types.singleton("Type"))
@@ -607,7 +671,7 @@ export type function ServiceToReference(service: type)
 		return type
 	end
 
-	local newProperties: {[type]: { read: type, write: type }} = {}
+	local newProperties: {[type]: { read: type?, write: type? }} = {}
 	for key, property in service:properties() do
 		if property.read then
 			local hasClientCounterpart = property.read:is("function")
@@ -621,6 +685,16 @@ export type function ServiceToReference(service: type)
 					read = ToClient(property.read),
 					write = types.never
 				}
+			elseif key:is("singleton") and key:value() == "Signal" and property.read:is("table") then
+				-- functions in the Signal table are exposed to the client as signals
+				for signalKey, signalProperty in property.read:properties() do
+					if signalProperty.read and signalProperty.read:is("function") then
+						newProperties[signalKey] = {
+							read = ClientRemoteSignal,
+							write = types.never
+						}
+					end
+				end
 			end
 		end
 	end

@@ -1,5 +1,5 @@
-local RunService = game:GetService("RunService")
-local Types = require(script.Types)
+const RunService = game:GetService("RunService")
+const Types = require(script.Types)
 
 if RunService:IsClient() then
 	local serverInstance = script:FindFirstChild("Server")
@@ -12,9 +12,10 @@ if RunService:IsClient() then
 end
 
 --[=[
-	@type self<C,S> C & { Player: Player, Server: S, Mutex: { Lock: (self, Player) -> (), Unlock: (self, Player) -> (), Wrap: <A...>(self, (A...) -> (...any), A...) -> (boolean, ...unknown), WrapPlayer: <A...>(self, Player, (A...) -> (...any), A...) -> (boolean, ...unknown) }, confirm: <T>(value: T?) -> T }
+	@type self<C,S> C & { Player: Player, Server: S, Mutex: Mutex, confirm: Confirm }
 	@within Types
-	Type used to describe the `self` object in Client functions
+	Type used to describe the `self` object in Client functions.
+	Each client function has its own [Mutex], with a global lock and one lock per player.
 	```lua
 	function MyService.Client.PrintPlayer(self: fish.self<client, server>)
 		print(self.Player)
@@ -23,9 +24,19 @@ end
 		self.Mutex:Lock()
 		-- Run critical section
 		self.Mutex:Unlock()
+
+		--> Locking is re-entrant; this only releases once the matching Unlock has run
+		self.Mutex:Lock()
+		self.Mutex:Unlock()
+		self.Mutex:Unlock()
+
+		--> Locking this player only, warning if the lock is held for longer than 5 seconds
+		self.Mutex:Lock(5, self.Player)
+		-- Run critical section
+		self.Mutex:Unlock(self.Player)
 		
-		--> Mutex with wrapping
-		local success, result = self.Mutex:Wrap(function(parameter)
+		--> Mutex with wrapping; the wrapped function runs on its own thread and is given its own silent assert
+		local success, result = self.Mutex:Wrap(nil, function(confirm, parameter)
 			-- Run critical section
 			return parameter
 		end, 1)
@@ -40,19 +51,13 @@ end
 export type self<C, S> = C & {
 	Player: Player,
 	Server: S,
-	Mutex: {
-		Lock: (self: any, player: Player?) -> (),
-		Unlock: (self: any, player: Player?) -> (),
-		Wrap: <A...>(self: any, func: (A...) -> (...any), A...) -> (boolean, ...unknown),
-		WrapPlayer: <A...>(self: any, player: Player, func: (A...) -> (...any), A...) -> (boolean, ...unknown)
-	},
-	confirm: <T>(value: T?) -> T
+	Mutex: Types.Mutex,
+	confirm: Types.Confirm
 };
 
 --[=[
-	@ignore
 	@type ServiceToReference<T> {[any]: ToClient<type>}
-	@within TypeFunctions
+	@within Types
 	A type used to wrap an entire service's client table with ToClient<type>
 ]=]
 export type ServiceToReference<T> = Types.ServiceToReference<T>

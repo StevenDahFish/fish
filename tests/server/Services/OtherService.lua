@@ -1,9 +1,9 @@
 --// Services
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 --// Core
-local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
-local OtherService = {Client = {Signal = {}}}
+const fish = require(ReplicatedStorage.Packages.fish); const fish = fish.Server
+const OtherService = {Client = {Signal = {}}}
 
 --// Dependencies
 

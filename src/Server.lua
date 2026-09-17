@@ -4,22 +4,36 @@
 	Contains the server functionality of fish framework
 ]=]
 
-local RunService = game:GetService("RunService")
-local Server = {}
+const RunService = game:GetService("RunService")
+const Players = game:GetService("Players")
+const Server = {}
 
 --// Dependencies
-local ServerComm = require(script.Parent.Parent.Comm).ServerComm
-local Promise = require(script.Parent.Parent.Promise)
-local Signal = require(script.Parent.Parent.Signal)
-local Types = require(script.Parent.Types)
-local fish = require(script.Parent.Types)
+const ServerComm = require(script.Parent.Parent.Comm).ServerComm
+const Promise = require(script.Parent.Parent.Promise)
+const Signal = require(script.Parent.Parent.Signal)
+const Types = require(script.Parent.Types)
+const fish = require(script.Parent.Types)
+
+--[=[
+	@ignore
+	@type PromiseEvent<T...> { Connect: (self: any, callback: (T...) -> ...any) -> { Disconnect: (self: any) -> ...any, [any]: any } }
+	@within Server
+	The event shape `Promise.fromEvent` accepts.
+	`Signal.Connection` and the connection type `Promise.fromEvent` expects are identical
+	apart from the latter's `[any]: any` indexer, which makes the two mutually
+	incompatible, so the signal is described with this type at the call site.
+]=]
+type PromiseEvent<T...> = {
+	Connect: (self: any, callback: (T...) -> ...any) -> { Disconnect: (self: any) -> ...any, [any]: any }
+}
 
 --// Constants & Variables
-local services: {[string]: fish.Service<unknown>} = {}
+local services: {[string]: fish.RegisteredService} = {}
 local serviceDirectories: {Instance} = {}
 local started = false
 local isStarting = false
-local startedSignal = Signal.new()
+local startedSignal: Signal.Signal<> = Signal.new()
 
 --[=[
 	@ignore
@@ -40,6 +54,340 @@ end
 local PROPERTY_MARKER = newproxy(true)
 getmetatable(PROPERTY_MARKER).__tostring = function()
 	return "PROPERTY_MARKER"
+end
+
+--[=[
+	@ignore
+	@prop N/A nil
+	@within Server
+	Thresholds the mutex uses to warn about lock contention
+]=]
+local MUTEX_WARN_GLOBAL_DEPTH_THRESHOLD = 4
+local MUTEX_WARN_PLAYER_DEPTH_THRESHOLD = 4
+local MUTEX_WARN_GLOBAL_QUEUE_BASE_THRESHOLD = 10 -- Scales based on player count
+local MUTEX_WARN_PLAYER_QUEUE_THRESHOLD = 10
+local MUTEX_WARN_RATE_LIMIT_SECONDS = 5
+local MUTEX_HELD_TIME_POLL_SECONDS = 0.25
+
+--[=[
+	@ignore
+	@type MutexEntry { Locked: boolean, Owner: thread?, Depth: number, Queue: {thread}, HoldStartedAt: number?, HoldExpectedMaxSeconds: number?, HoldWarned: boolean?, OriginTraceback: string? }
+	@within Server
+	One lock held by a mutex; a mutex has one global entry and one entry per player
+]=]
+type MutexEntry = {
+	Locked: boolean,
+	Owner: thread?,
+	Depth: number,
+	Queue: {thread},
+
+	HoldStartedAt: number?,
+	HoldExpectedMaxSeconds: number?,
+	HoldWarned: boolean?,
+	OriginTraceback: string?
+}
+
+--[=[
+	@ignore
+	@type MutexWarnType "Depth" | "Queue" | "Held"
+	@within Server
+	The kinds of contention a mutex warns about
+]=]
+type MutexWarnType = "Depth" | "Queue" | "Held"
+
+--[=[
+	@ignore
+	@type MutexWarnTimes {[MutexWarnType]: number}
+	@within Server
+	When each kind of mutex warning was last emitted, used to rate limit them
+]=]
+type MutexWarnTimes = {[MutexWarnType]: number}
+
+--[=[
+	@ignore
+	@within Server
+	Stops the current thread when the given value is falsy.
+	Passed to the functions given to `Mutex:Wrap()` and `Mutex:WrapPlayer()`, which run on
+	their own thread and therefore cannot use the `self.confirm()` of the client function
+	that started them.
+]=]
+local function silentAssert<T>(value: T?): T
+	if not value then
+		if coroutine.isyieldable() then
+			task.defer(coroutine.close, coroutine.running())
+			coroutine.yield()
+		else
+			error("Unable to silently fail, current thread is not yieldable")
+		end
+	end
+	return value
+end
+
+--[=[
+	@ignore
+	@within Server
+	Creates the mutex for a single client function.
+	Returns the mutex that gets injected into `self`, along with a function that releases every
+	lock still owned by a given thread; the wrapper uses it to clean up after the client
+	function returns or errors.
+]=]
+local function createMutex(label: string): (Types.Mutex, (owner: thread) -> ())
+	local global: MutexEntry = {
+		Locked = false,
+		Owner = nil,
+		Depth = 0,
+		Queue = {}
+	}
+	local playerEntries: {[Player]: MutexEntry} = {}
+
+	local lastWarnAtGlobal: MutexWarnTimes = {}
+	local lastWarnAtPlayer: {[Player]: MutexWarnTimes} = {}
+
+	local function getTracebackFirstLine(): string
+		local success, traceback = pcall(debug.traceback, nil, 2)
+
+		if not success or type(traceback) ~= "string" then
+			return "Unknown"
+		end
+
+		return traceback:split("\n")[2] or "Unknown"
+	end
+
+	local function describe(player: Player?): string
+		if player then
+			return `"{label}" of player (#{player.UserId})`
+		end
+		return `"{label}"`
+	end
+
+	local function warnTimesFor(player: Player?): MutexWarnTimes
+		if player == nil then
+			return lastWarnAtGlobal
+		end
+
+		local existing = lastWarnAtPlayer[player]
+		if existing ~= nil then
+			return existing
+		end
+
+		local warnTimes: MutexWarnTimes = {}
+		lastWarnAtPlayer[player] = warnTimes
+		return warnTimes
+	end
+
+	local function entryFor(player: Player?): MutexEntry
+		if player == nil then
+			return global
+		end
+
+		local existing = playerEntries[player]
+		if existing ~= nil then
+			return existing
+		end
+
+		local entry: MutexEntry = {
+			Locked = false,
+			Owner = nil,
+			Depth = 0,
+			Queue = {}
+		}
+		playerEntries[player] = entry
+		return entry
+	end
+
+	local function warnRateLimited(player: Player?, warnType: MutexWarnType, message: string)
+		local warnTimes = warnTimesFor(player)
+
+		local now = os.clock()
+		local last = warnTimes[warnType]
+		if last ~= nil and now - last < MUTEX_WARN_RATE_LIMIT_SECONDS then
+			return
+		end
+
+		warnTimes[warnType] = now
+		warn(message)
+	end
+
+	local function warnIfDepthLarge(player: Player?, entry: MutexEntry)
+		local threshold = if player then MUTEX_WARN_PLAYER_DEPTH_THRESHOLD else MUTEX_WARN_GLOBAL_DEPTH_THRESHOLD
+
+		if entry.Depth <= threshold then
+			return
+		end
+
+		warnRateLimited(
+			player,
+			"Depth",
+			`High depth ({entry.Depth}) for {describe(player)}. Check if you are using Unlock or if there is recursion{if entry.OriginTraceback ~= nil then `: {entry.OriginTraceback}` else "."}`
+		)
+	end
+
+	local function warnIfQueueLarge(player: Player?, entry: MutexEntry)
+		local queueSize = #entry.Queue
+		local threshold = if player
+			then MUTEX_WARN_PLAYER_QUEUE_THRESHOLD
+			else MUTEX_WARN_GLOBAL_QUEUE_BASE_THRESHOLD * math.max(#Players:GetPlayers(), 1)
+		if queueSize <= threshold then
+			return
+		end
+
+		warnRateLimited(player, "Queue", `Large queue ({queueSize}/{threshold}) for {describe(player)}. Usage is high or a lock is being held for too long{if entry.OriginTraceback ~= nil then `: {entry.OriginTraceback}` else "."}`)
+	end
+
+	local function startHoldTimer(entry: MutexEntry, player: Player?, expectedMaxSeconds: number?)
+		if expectedMaxSeconds == nil then
+			return
+		end
+
+		entry.HoldStartedAt = os.clock()
+		entry.HoldExpectedMaxSeconds = expectedMaxSeconds
+		entry.HoldWarned = false
+
+		task.spawn(function()
+			while entry.Locked do
+				local startedAt = entry.HoldStartedAt
+				local expectedMax = entry.HoldExpectedMaxSeconds
+				if startedAt == nil or expectedMax == nil then
+					return
+				end
+
+				if entry.HoldWarned == false then
+					local elapsed = os.clock() - startedAt
+					if elapsed > expectedMax then
+						entry.HoldWarned = true
+						warnRateLimited(player, "Held", (`Lock held longer than expected (%.2fs) for {describe(player)}{if entry.OriginTraceback ~= nil then `: {entry.OriginTraceback}` else "."}`):format(expectedMax))
+						return
+					end
+				end
+				task.wait(MUTEX_HELD_TIME_POLL_SECONDS)
+			end
+		end)
+	end
+
+	local function clearHoldTimer(entry: MutexEntry)
+		entry.HoldStartedAt = nil
+		entry.HoldExpectedMaxSeconds = nil
+		entry.HoldWarned = nil
+	end
+
+	local function lock(expectedMaxRuntimeSeconds: number?, player: Player?, traceback: string)
+		local currentThread = coroutine.running()
+		local entry = entryFor(player)
+
+		-- Already locked and attempting to re-enter in the same thread
+		if entry.Locked and entry.Owner == currentThread then
+			entry.Depth += 1
+			warnIfDepthLarge(player, entry)
+			return
+		end
+
+		if entry.Locked then
+			table.insert(entry.Queue, currentThread)
+			warnIfQueueLarge(player, entry)
+			coroutine.yield()
+		end
+
+		-- Yield has concluded, we now control the thread
+		entry.Locked = true
+		entry.Owner = currentThread
+		entry.Depth = 1
+		entry.OriginTraceback = traceback
+
+		startHoldTimer(entry, player, expectedMaxRuntimeSeconds)
+	end
+
+	local function release(entry: MutexEntry, player: Player?)
+		clearHoldTimer(entry)
+		entry.Depth = 0
+		entry.Owner = nil
+		entry.OriginTraceback = nil
+
+		if #entry.Queue > 0 then
+			local nextThread = table.remove(entry.Queue, 1)
+			if nextThread then
+				-- Ownership transfers when nextThread continues after yield
+				entry.Locked = true
+				coroutine.resume(nextThread)
+				return
+			end
+		end
+
+		entry.Locked = false
+		if player then
+			playerEntries[player] = nil
+		end
+	end
+
+	local function unlock(player: Player?)
+		local currentThread = coroutine.running()
+		local entry = if player then playerEntries[player] else global
+		assert(entry ~= nil and entry.Locked, "Cannot unlock an already unlocked mutex")
+		assert(entry.Owner == currentThread, "Cannot unlock mutex from a different thread")
+
+		-- Handle depth if necessary
+		if entry.Depth > 1 then
+			entry.Depth -= 1
+			return
+		end
+
+		release(entry, player)
+	end
+
+	local function wrap<A..., R...>(expectedMaxRuntimeSeconds: number?, player: Player?, traceback: string, func: (Types.Confirm, A...) -> R..., ...: A...): (boolean, R...)
+		local currentThread = coroutine.running()
+		local entry = if player then playerEntries[player] else global
+		local alreadyOwned = entry ~= nil and entry.Locked and entry.Owner == currentThread
+
+		if not alreadyOwned then
+			lock(expectedMaxRuntimeSeconds, player, traceback)
+		end
+
+		local args: {any} = {...}
+		local results: {any} = {false, "Silent assertion failed."}
+
+		local invoke = func :: (Types.Confirm, ...any) -> ...any
+		local thread = task.spawn(function()
+			results = {pcall(invoke, silentAssert, unpack(args))}
+			task.spawn(assert, results[1], `{tostring(results[2])}\n\nTraceback originated from {describe(player)} at:\n{traceback}`)
+		end)
+
+		while coroutine.status(thread) ~= "dead" do
+			task.wait()
+		end
+
+		if not alreadyOwned then
+			unlock(player)
+		end
+
+		return unpack(results)
+	end
+
+	local function releaseOwnedBy(owner: thread)
+		if global.Locked and global.Owner == owner then
+			release(global, nil)
+		end
+		for player, entry in playerEntries do
+			if entry.Locked and entry.Owner == owner then
+				release(entry, player)
+			end
+		end
+	end
+
+	local mutex: Types.Mutex = {
+		Lock = function(self: Types.Mutex, expectedMaxRuntimeSeconds: number?, player: Player?)
+			lock(expectedMaxRuntimeSeconds, player, getTracebackFirstLine())
+		end,
+		Unlock = function(self: Types.Mutex, player: Player?)
+			unlock(player)
+		end,
+		Wrap = function<A..., R...>(self: Types.Mutex, expectedMaxRuntimeSeconds: number?, func: (Types.Confirm, A...) -> R..., ...: A...): (boolean, R...)
+			return wrap(expectedMaxRuntimeSeconds, nil, getTracebackFirstLine(), func, ...)
+		end,
+		WrapPlayer = function<A..., R...>(self: Types.Mutex, expectedMaxRuntimeSeconds: number?, player: Player, func: (Types.Confirm, A...) -> R..., ...: A...): (boolean, R...)
+			return wrap(expectedMaxRuntimeSeconds, player, getTracebackFirstLine(), func, ...)
+		end
+	}
+	return mutex, releaseOwnedBy
 end
 
 --[=[
@@ -82,7 +430,7 @@ function Server.service<T>(service: string | ModuleScript, definition: (fish.Ser
 
 		assert(not started, "Service cannot be added after calling \"fish.Start()\"")
 
-		local service = definition :: fish.ServiceDef<T>
+		local service = definition :: fish.RegisteredService
 
 		if type(service.Client) ~= "table" then
 			service.Client = {}
@@ -104,7 +452,8 @@ function Server.service<T>(service: string | ModuleScript, definition: (fish.Ser
 		end
 
 		service.__fishMetadata = {
-			Instance = scriptInstance
+			Instance = scriptInstance,
+			Name = name
 		}
 
 		services[name] = service
@@ -173,7 +522,12 @@ end
 	Starts all created services.
 	Services cannot be created after called.
 
-	@param disableConfirmAndMutexSafety boolean? -- Whether self.confirm() should be disabled, and whether mutex won't automatically unlock if an error occurs before self.Mutex:Unlock() is called
+	While `self.confirm()` is enabled, client functions run on their own thread so they can be stopped silently.
+	Because of how `self.confirm()` is implemented, errors have to be intercepted on the server side instead of
+	being sent to the client directly. If this behavior is undesired and the usage of `self.confirm()` and locks
+	held by `self.Mutex` being automatically released when the thread ends can be removed, pass `true` to disable both.
+
+	@param disableConfirmAndMutexSafety boolean? -- Whether self.confirm() should be disabled, and whether locks held by self.Mutex won't automatically be released if an error occurs before self.Mutex:Unlock() is called
 	@return Promise.TypedPromise<> -- Promise that resolves when started
 ]=]
 function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedPromise<>
@@ -185,21 +539,20 @@ function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedProm
 		isStarting = true
 
 		-- Sort service load order by priority
-		local hasPriority: {fish.Service<unknown>} = {}
-		local noPriority: {fish.Service<unknown>} = {}
-		for name, service in services do
-			service.__fishMetadata.Name = name
+		local hasPriority: {fish.RegisteredService} = {}
+		local noPriority: {fish.RegisteredService} = {}
+		for _, service in services do
 			if service.LoadPriority then
 				table.insert(hasPriority, service)
 			else
 				table.insert(noPriority, service)
 			end
 		end
-		table.sort(hasPriority, function(a: fish.Service<unknown>, b: fish.Service<unknown>)
+		table.sort(hasPriority, function(a: fish.RegisteredService, b: fish.RegisteredService)
 			return (a.LoadPriority :: number) > (b.LoadPriority :: number)
 		end)
 		
-		local sortedServices: {fish.Service<unknown>} = {}
+		local sortedServices: {fish.RegisteredService} = {}
 		for _, service in ipairs(hasPriority) do
 			table.insert(sortedServices, service)
 		end
@@ -212,124 +565,44 @@ function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedProm
 			servicesFolder.Name = "Services"
 			servicesFolder.Parent = script.Parent
 
+			-- Every "self" given to a client function, used to detect calls made from another client function
+			local injectedSelves: {[any]: true} = setmetatable({}, { __mode = "k" }) :: any
+
 			-- Wrap function to alter parameter functionality with player
-			local function wrapFunction<K, V>(func: (...any) -> ())
-				local mutex: { Locked: boolean, Queue: {thread}, PlayerQueue: { [Player]: { Locked: boolean, Queue: {thread} } } } = {
-					Locked = false,
-					Queue = {},
-					PlayerQueue = {}
-				}
-				return function(self: {[K]: V}, player: Player, ...)
+			local function wrapFunction<K, V>(func: (...any) -> (), label: string)
+				local mutex, releaseMutexOwnedBy = createMutex(label)
+				return function(self: {[K]: V}, ...)
+					-- Calls from the client pass the player first, calls from self:OtherClientFunction() already have it in self
+					local player: Player
+					local args: {any}
+					if injectedSelves[self] then
+						player = (self :: any).Player
+						args = {...}
+					else
+						player = ...
+						args = {select(2, ...)}
+					end
+
 					-- Create a local copy of "self" and inject "player" into it
 					local localSelf = {}
 					for k, v in self do
 						localSelf[k] = v
 					end
 					localSelf.Player = player
+					injectedSelves[localSelf] = true
 
-					-- Implement mutex and inject it
-					local threadLockState: { Global: boolean, Player: { [Player]: true } } = {
-						Global = false,
-						Player = {}
-					}
-					localSelf.Mutex = {
-						Lock = function(self: any, player: Player?)
-							if player then
-								assert(not threadLockState.Player[player], "Cannot lock an already locked mutex in the same thread")
-								threadLockState.Player[player] = true
+					-- Inject the mutex
+					localSelf.Mutex = mutex
 
-								local playerMutex = mutex.PlayerQueue[player]
-								if playerMutex == nil then
-									playerMutex = {
-										Locked = false,
-										Queue = {}
-									}
-									mutex.PlayerQueue[player] = playerMutex
-								end
-
-								if playerMutex.Locked then
-									table.insert(playerMutex.Queue, coroutine.running())
-									coroutine.yield()
-								else
-									playerMutex.Locked = true
-								end
-							else
-								assert(not threadLockState.Global, "Cannot lock an already locked mutex in the same thread")
-								threadLockState.Global = true
-
-								if mutex.Locked then
-									table.insert(mutex.Queue, coroutine.running())
-									coroutine.yield()
-								else
-									mutex.Locked = true
-								end
-							end
-						end,
-						Unlock = function(self: any, player: Player?)
-							if player then
-								assert(threadLockState.Player[player], "Cannot unlock an already unlocked mutex")
-								threadLockState.Player[player] = nil
-
-								local playerMutex = mutex.PlayerQueue[player]
-								assert(playerMutex and playerMutex.Locked, "Cannot unlock an already unlocked mutex")
-
-								if #playerMutex.Queue > 0 then
-									local nextThread = table.remove(playerMutex.Queue, 1)
-									if nextThread then
-										coroutine.resume(nextThread)
-									end
-								else
-									playerMutex.Locked = false
-									mutex.PlayerQueue[player] = nil
-								end
-							else
-								assert(threadLockState.Global, "Cannot unlock an already unlocked mutex in the same thread")
-								assert(mutex.Locked, "Cannot unlock an already unlocked mutex")
-								threadLockState.Global = false
-								if #mutex.Queue > 0 then
-									local nextThread = table.remove(mutex.Queue, 1)
-									if nextThread then
-										coroutine.resume(nextThread)
-									end
-								else
-									mutex.Locked = false
-								end
-							end
-						end,
-						Wrap = function<A..., R...>(self: any, func: (A...) -> (R...), ...: A...): (boolean, R...)
-							assert(not threadLockState.Global, "Cannot wrap mutex as this thread is already locked")
-							localSelf.Mutex:Lock()
-							local results: {any} = {pcall(func, ...)}
-							localSelf.Mutex:Unlock()
-							return unpack(results)
-						end,
-						WrapPlayer = function<A..., R...>(self: any, player: Player, func: (A...) -> (R...), ...: A...): (boolean, R...)
-							assert(not threadLockState.Player[player], "Cannot wrap mutex as this thread is already locked")
-							localSelf.Mutex:Lock(player)
-							local results: {any} = {pcall(func, ...)}
-							localSelf.Mutex:Unlock(player)
-							return unpack(results)
-						end
-					}
-					
 					-- Disable confirm and mutex safety if asked
 					if disableConfirmAndMutexSafety then
 						localSelf.confirm = function()
 							error("self.confirm() has been disabled. See fish.start()'s arguments to change this behavior.")
 						end
 
-						local returnValues = {func(localSelf, ...)}
+						local returnValues = {func(localSelf, unpack(args))}
 
-						if mutex.Locked and threadLockState.Global then
-							localSelf.Mutex:Unlock()
-						end
-
-						for player, isLocked in threadLockState.Player do
-							local playerMutex = mutex.PlayerQueue[player]
-    						if isLocked and playerMutex and playerMutex.Locked then
-								localSelf.Mutex:Unlock(player)
-							end
-						end
+						releaseMutexOwnedBy(coroutine.running())
 
 						return unpack(returnValues)
 					end
@@ -350,12 +623,11 @@ function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedProm
 					end
 
 					-- Call the original function with the modified "localSelf"
-					local args = {...}
 					local thread = task.spawn(function()
 						if RunService:IsStudio() then
 							returnValues = {func(localSelf, unpack(args))}
 						else
-							local success, err = (pcall :: () -> (boolean, string?))(function() -- casting pcall due to luau new solver issue (see #1881)
+							local success, err = pcall(function()
 								returnValues = {func(localSelf, unpack(args))}
 							end)
 							if not success then
@@ -368,16 +640,7 @@ function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedProm
 						repeat task.wait() until coroutine.status(thread) == "dead"
 					end
 
-					if mutex.Locked and threadLockState.Global then
-						localSelf.Mutex:Unlock()
-					end
-
-					for player, isLocked in threadLockState.Player do
-						local playerMutex = mutex.PlayerQueue[player]
-						if isLocked and playerMutex and playerMutex.Locked then
-							localSelf.Mutex:Unlock(player)
-						end
-					end
+					releaseMutexOwnedBy(thread)
 					
 					return unpack(returnValues)
 				end
@@ -418,10 +681,11 @@ function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedProm
 						return
 					end
 
-					local comm = ServerComm.new(servicesFolder, service.__fishMetadata.Name) :: any
+					local metadata = assert(service.__fishMetadata)
+					local comm = ServerComm.new(servicesFolder, metadata.Name) :: any
 					for k, v in client do
 						if type(v) == "function" then
-							client[k] = wrapFunction(v)
+							client[k] = wrapFunction(v, `{metadata.Name}.{k}`)
 							comm:WrapMethod(service.Client, k)
 						elseif v == SIGNAL_MARKER then
 							client[k] = comm:CreateSignal(k, false)
@@ -432,7 +696,7 @@ function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedProm
 						elseif k == "Signal" and type(v) == "table" then
 							for sk, sv in v do
 								if type(sv) == "function" then
-									local wrappedFunction = wrapFunction(sv :: (...any) -> any);
+									local wrappedFunction = wrapFunction(sv :: (...any) -> any, `{metadata.Name}.Signal.{sk}`);
 									local signal = comm:CreateSignal(sk, false);
 									(v :: {[any]: any})[sk :: any] = signal
 									signal:Connect(function(...)
@@ -444,8 +708,8 @@ function Server.start(disableConfirmAndMutexSafety: boolean?): Promise.TypedProm
 					end
 					
 					-- Expose parent to client
-					local serviceFolder = assert(servicesFolder:FindFirstChild(service.__fishMetadata.Name) :: Folder?)
-					local serviceScriptInstance: ModuleScript = service.__fishMetadata.Instance
+					local serviceFolder = assert(servicesFolder:FindFirstChild(metadata.Name) :: Folder?)
+					local serviceScriptInstance: ModuleScript = metadata.Instance
 					local fullNameSegments = serviceScriptInstance:GetFullName():split(".")
 					fullNameSegments[#fullNameSegments] = nil
 					serviceFolder:SetAttribute("Parent", table.concat(fullNameSegments, "."))
@@ -473,7 +737,7 @@ function Server.onStart(): Promise.TypedPromise<>
 	if started then
 		return Promise.resolve()
 	else
-		return Promise.fromEvent(startedSignal) :: Promise.TypedPromise<>
+		return Promise.fromEvent(startedSignal :: PromiseEvent<>)
 	end
 end
 

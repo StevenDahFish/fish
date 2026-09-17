@@ -1,17 +1,15 @@
---// Services
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- Services
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
 
---// Core
-local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Client
-local ExampleController = {}
+-- Core
+const fish = require(ReplicatedStorage.Packages.fish); const fish = fish.Client
+const ExampleController = {}
 
---// Dependencies
+-- Dependencies
 
---// Constants
+-- Variables
 
---// Variables
-
---// Functions
+-- Functions
 function ExampleController.OtherFunction(self: self)
 	print("Used public OtherFunction()!")
 end

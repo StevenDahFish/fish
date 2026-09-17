@@ -1,4 +1,1 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local fish = require(ReplicatedStorage.Packages.fish).Client
-
-return fish.service(script.Name)
+return require("@game/ReplicatedStorage/Packages/fish").Client.service(script.Name)

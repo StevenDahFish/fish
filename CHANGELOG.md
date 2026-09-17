@@ -5,17 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2026-09-16
 
 ### Added
-- Majority of code changes for 2.0.0 that can be seen in commit diff
+- fish.ServiceToReference type to automatically create the client reference of a service
+- Services can now specify a load order which affects which Start function runs first
+- Mutex implementation built into fish with a global lock and a lock per player
+- self.Mutex:WrapPlayer() to wrap a function using a player's lock
+- Warnings when a mutex lock has a high depth, has a large queue, or is held longer than expected
+- Locks held by self.Mutex are automatically released once a client function ends
+- Option to disable self.confirm() and mutex safety by passing true into fish.start() on the server
+- Warning when a service module is exposed to the client or overwrites an existing instance on the client
+- Versioning to the documentation
+- Mutex and migration guide pages to the documentation
 
 ### Changed
+- Services and controllers are now defined using fish.service(script, def) and fish.controller(script, def)
+- You no longer need to cast fish.ServiceDef or fish.ControllerDef when defining a service or controller
+- Service references on the client now cast to the "reference" type instead of the "client" type
+- self.Mutex:Wrap() now takes the expected max runtime as the first parameter and passes a silent assert into the wrapped function
+- Services are recreated on the client in the same location they are stored on the server instead of ServerStorage.Server.Services
+- Client is now expected to be in ReplicatedStorage.Client
+- self.confirm() now removes nil from the type of the value it returns
+- Framework now uses const and require by string, which requires luau's new solver
+- Server started indicator is now an attribute instead of an instance
 - Documentation now using primarily Docusaurus with Moonwave as a plugin
-- Preparing for 2.0.0 release & added versioning to documentation for this reason
 
 ### Fixed
+- Functions in Client.Signal not being included in the client reference type
+- Calling another client function using self:OtherClientFunction() passing the first argument as the player
 - Incorrect usages/references on now changed features from [v1.1.8](#118---2025-11-09) for certain parts of the documentation
+
+### Removed
+- Mutex Wally dependency
+- Removing the client folder in StarterPlayerScripts when obfuscation is enabled, as the client is no longer copied into PlayerScripts
+- Manually written "client" type mapping in services
+- fish.ClientRemoteSignal, fish.ClientRemoteProperty, fish.ServiceDef, and fish.ControllerDef exported types
 
 ## [1.1.8] - 2025-11-09
 
@@ -195,7 +220,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The base functionality of the entire framework!
 
-[Unreleased]: https://github.com/StevenDahFish/fish/compare/v1.1.8...HEAD
+[2.0.0]: https://github.com/StevenDahFish/fish/compare/v1.1.8...v2.0.0
 [1.1.8]: https://github.com/StevenDahFish/fish/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/StevenDahFish/fish/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/StevenDahFish/fish/compare/v1.1.5...v1.1.6
