@@ -15,7 +15,7 @@ Enable obfuscation by passing `true` as the first parameter into `fish.start()` 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
-local fish = require(ReplicatedStorage.Packages.fish)
+local fish = require(ReplicatedStorage.Packages.fish).Client
 fish.controllerDeep(Players.LocalPlayer.PlayerScripts.Client.Controllers)
 fish.start(true)
 ```
@@ -45,9 +45,9 @@ ServerStorage
 ```
 
 ## Mutex
-[Mia Vince's](https://wally.run/package/notfenv/mutex) implementation of [Mutex](https://en.wikipedia.org/wiki/Mutual_exclusion) has been implemented into all [service client functions](services/#adding-client-functions-to-a-service) and [service client signals](services/#signals). You can access it by using `self.Mutex` and see examples of how to use it [here](/api/Types#self<C,S>).
+[Mia Vince's](https://wally.run/package/notfenv/mutex) implementation of [Mutex](https://en.wikipedia.org/wiki/Mutual_exclusion) has been implemented into all [service client functions](services/#adding-client-functions-to-a-service) and [service client signals](services/#signals). You can access it by using `self.Mutex` and see examples of how to use it [here](/docs/1.1.8/API/Types#self<C,S>).
 
 ## confirm
 This is a drop-in replacement for luau's `assert()` function, where the difference is instead of throwing an error, it'll simply act like a return statement and prevent further code execution. If the argument passed in is a truthy value, it'll pass, otherwise it will fail. This is useful in conjunction with [t](getting-started/#dependencies) when validating types or just when you need to validate concisely without the need to log if it failed. The intended purpose is to help prevent unnecessary error logs from appearing within a game's analytics page under Error Report in the Creator Dashboard, but of course this can be used for any purpose.
 
-This has been implemented into all [service client functions](services/#adding-client-functions-to-a-service) and [service client signals](services/#signals) and can be used by accessing `self.confirm()`. See an example of how it is used [here](/api/Types#self<C,S>).
+This has been implemented into all [service client functions](services/#adding-client-functions-to-a-service) and [service client signals](services/#signals) and can be used by accessing `self.confirm()`. See an example of how it is used [here](/docs/1.1.8/API/Types#self<C,S>).

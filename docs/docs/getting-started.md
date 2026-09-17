@@ -6,25 +6,26 @@ sidebar_position: 2
 ## Prerequisites
 * Knowledge of [Wally](https://wally.run) and [Rojo](https://rojo.space)
 * Knowledge of how to use [Luau types](https://luau.org/)
-* Usage of a **Luau Language Server** in strict typed mode `--!strict`
+* Knowledge of how to use [Luau's new solver](https://devforum.roblox.com/t/new-type-solver-beta/3155804)
+* Usage of a **Luau Language Server** in strict typed mode `--!strict` and with the new solver
 
 This framework depends on typing, and a lot of design decisions have been made with using types in mind. If you do not see the need to use types, it's recommended to use another framework that would match your goals.
 
 This documentation has been written with the assumption that you are using [VSCode](https://code.visualstudio.com/) with the [Luau LSP](https://marketplace.visualstudio.com/items?itemName=JohnnyMorganz.luau-lsp) extension.
 
+:::tip
+Coming from v1? See [Migrating from v1](migrating-from-v1) to see what has changed and how to update your project.
+:::
+
 ## Installation
 ### Wally & Rojo workflow
-1. Add fish as a Wally dependency (e.g. `fish = "stevendahfish/fish@^1"`)
-1. Add other dependencies to Wally as well (see [Dependencies](#dependencies)) 
+1. Add fish as a Wally dependency (e.g. `fish = "stevendahfish/fish@^2"`)
+1. Add other dependencies to Wally as well (see [Dependencies](#dependencies))
 1. Use Rojo to point the Wally packages to ReplicatedStorage.
 1. ⚠️ Use [wally-package-types](faq#how-to-use-wally-package-types) to allow proper typing. **(IMPORTANT!)**
 
 #### Dependencies
-1. **Promise**
-	* `Promise = "stevendahfish/typed-promise@^4"`
-	* Mandatory for defining types for client functions in services
-	* I've published onto Wally a typed version of evaera's [Promise](https://eryn.io/roblox-lua-promise/api/Promise/) package which should be used here
-2. **t**
+1. **t**
 	* `t = "osyrisrblx/t@^3"`
 	* Highly recommended for defining type security when handling responses from the client for client functions in services
 
@@ -41,37 +42,60 @@ The structure of fish is based around the hierarchy of Services (server modules)
 First, you want to create a basic structure for where to store services and controllers.
 
 ```
-ServerScriptService
-└── 🗎 Initialize.lua
-
 ServerStorage
 └── 🗀 Server
     └── 🗀 Services
-
-StarterPlayer
-└── StarterPlayerScripts
     └── 🗎 Initialize.lua
-    └── 🗀 Client
-        └── 🗀 Controllers
+
+ReplicatedStorage
+└── 🗀 Client
+    └── 🗀 Controllers
+    └── 🗎 Initialize.lua
 ```
 
-Initialize the server in `ServerScriptService > Initialize.lua`:
-```luau
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerStorage = game:GetService("ServerStorage")
+Example of `default.project.json`:
+```json
+{
+	"name": "my-project",
+	"emitLegacyScripts": false,
+	"tree": {
+		"$className": "DataModel",
 
-local fish = require(ReplicatedStorage.Packages.fish).Server
-fish.serviceDeep(ServerStorage.Server.Services)
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Packages": {
+				"$path": "Packages"
+			},
+			"Client": {
+				"$path": "src/client"
+			}
+		},
+
+		"ServerStorage": {
+			"$className": "ServerStorage",
+			"Server": {
+				"$path": "src/server"
+			}
+		}
+	}
+}
+```
+
+Initialize the server in `ServerStorage > Server > Initialize.lua` with the `RunContext` set to `Server`:
+```luau
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
+const fish = require(ReplicatedStorage.Packages.fish).Server
+
+fish.serviceDeep(script.Parent.Services)
 fish.start()
 ```
 
-Initialize the client as well in `StarterPlayer > StarterPlayerScripts > Initialize.lua`:
+Initialize the client as well in `ReplicatedStorage > Client > Initialize.lua` with the `RunContext` set to `Client`:
 ```luau
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
+const fish = require(ReplicatedStorage.Packages.fish).Client
 
-local fish = require(ReplicatedStorage.Packages.fish).Client
-fish.controllerDeep(Players.LocalPlayer.PlayerScripts.Client.Controllers)
+fish.controllerDeep(script.Parent.Controllers)
 fish.start()
 ```
 ## What's next?

@@ -168,7 +168,7 @@
 
 		'number': /\b0x[\da-fA-F]+|\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b/,
 
-		'keyword': /\b(?:and|break|do|else|elseif|end|for|if|in|local|not|or|repeat|return|then|until|while)\b/,
+		'keyword': /\b(?:and|break|do|else|elseif|end|for|if|in|local|const|not|or|repeat|return|then|until|while)\b/,
 
 		'boolean': /\b(?:true|false)\b/,
 

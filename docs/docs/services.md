@@ -8,11 +8,14 @@ A service is a server module to handle an aspect of your game. To create a servi
 First, import the fish module and access the server section and create a table with a Client table to represent your service. Optionally, add a Signal table within the Client table to help with creating signals in the future.
 If you are wondering why you have to format the fish import like shown below, [read this](faq#why-is-fish-serverclient-imported-like-that) to understand.
 ```luau
-local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
-local MyService = {Client = {Signal = {}}}
+const fish = require(ReplicatedStorage.Packages.fish); const fish = fish.Server
+const MyService = {Client = {Signal = {}}}
 ```
 :::caution
 If there is no Client table or nothing is put inside of that table, the service will not be known to the client and any reference to it from the client will result in a runtime error. This can be intentionally used to hide service names if it benefits you.
+:::
+:::warning
+Service modules should always be stored somewhere the client can't see, such as `ServerStorage`. If a service module is exposed to the client (e.g. stored in `ReplicatedStorage`), its source code could be read and a warning will be outputted on the client.
 :::
 
 Next, create a start function as apart of the service table. This will be ran once the framework is started. Define it with dot notation and pass in the `self` type to allow full autocomplete. (*this type is defined in the next code block*)
@@ -21,31 +24,45 @@ function MyService.Start(self: self)
 	print("MyService has been started!")
 end
 ```
-:::note
-**Services are loaded in an abitrary order**. Ensure when referencing other services, that it can run safely if it doesn't start at the same time. Using any public functions should be safe, assuming that any logic done inside these functions don't depend on its Start function running first. It's also convention to run most code in the Start function and *not* outside in the global context.
-:::
-Finally, you'll want to define some types for defining client functions later and then return the service by defining it with fish.
+Finally, you'll want to define some types to represent the service and then return the service by defining it with fish. The name of the service will be the name of the script.
 
 #### **Final Result**
 ```luau
-local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
-local MyService = {Client = {}}
+const fish = require(ReplicatedStorage.Packages.fish); const fish = fish.Server
+const MyService = {Client = {Signal = {}}}
 
 function MyService.Start(self: self)
 	print("MyService has been started!")
 end
 
--- Mapping
-export type client = {}
-
 type self = typeof(MyService)
-type sclient = typeof(MyService.Client)
-type sclientsignal = typeof(MyService.Client.Signal)
-return fish.service("MyService", MyService :: fish.ServiceDef, script)
+type client = typeof(MyService.Client)
+type clientSignal = typeof(MyService.Client.Signal)
+export type reference = fish.ServiceToReference<client>
+return fish.service(script, MyService)
 ```
 :::tip Snippet
 **[fishserver](snippets/#fish-server) (fish server)**<br/>Initializes a service
 :::
+### Load Priority
+**Services are loaded in an arbitrary order unless otherwise specified**. Ensure when referencing other services, that it can run safely if it doesn't start at the same time. Using any public functions should be safe, assuming that any logic done inside these functions don't depend on its Start function running first. It's also convention to run most code in the Start function and *not* outside in the global context.
+
+To specify a load order, add the `LoadPriority` property to the service table. The service with the highest number will start first, then the next number under that and so on.
+```luau
+const MyService = {Client = {Signal = {}}, LoadPriority = 10}
+```
+
+:::note
+If multiple services have the same load priority, those services will be started in an arbitrary order between themselves. If any services don't define their load priority, then they will start last after all the services with a defined load priority *(in an arbitrary order amongst themselves)*.
+
+**Example**
+* MyService `(LoadPriority: 10)` starts first
+* DataService `(LoadPriority: 5)` and ShopService `(LoadPriority: 5)` start second and third in an arbitrary order
+* PlayerService and MapService `(no LoadPriority)` start last in an arbitrary order
+:::
+
+Each Start function runs on its own thread. If a Start function yields, the next service will still start without waiting for it. If a Start function errors, the other services will still start.
+
 ## Public functions
 You can create a function that is accessible by other services by defining a function in the service table. After all, a service is just a table.
 ```luau
@@ -55,12 +72,16 @@ function MyService.PublicHello(self: self)
 end
 
 -- OtherService.lua
+const MyService = require("./MyService")
+
 function OtherService.Start(self: self)
 	MyService:PublicHello()
 end
 ```
 :::tip Snippet
 **[ff](snippets/#fish-function) (fish function)**<br/>Creates a public function
+
+**[fss](snippets/#fish-service-reference-server) (fish service reference server)**<br/>Creates a service reference for the server
 :::
 
 ## Public signals
@@ -82,67 +103,52 @@ function OtherService.Start(self: self)
 end
 ```
 
-## Mapping
-Mapping is the act of typing what is available to the client. This is crucial in order for the client to know about what services expose to them. This means any client functions, signals, or properties you create, you must put it in the mapping in order for it to be recognized in controllers. If this service is planned to not have any public features, it is not necessary to create mappings.
+## Reference
+The reference is the type of what is available to the client. This is crucial in order for the client to know about what services expose to them. Instead of writing this type yourself, fish creates it for you using `fish.ServiceToReference` with the type of your Client table.
 ```luau
-export type client = {}
+type client = typeof(MyService.Client)
+export type reference = fish.ServiceToReference<client>
 ```
-### Client Functions
-All client functions return a [Promise](https://eryn.io/roblox-lua-promise/api/Promise) that is resolved once the server returns a value. You must account for this when writing the mapping. Additionally for convention, all functions should be seen as "methods" which means `self` should be passed in as the first argument with type `any`.
+Everything in the Client table gets converted into what the client sees:
+* [Client functions](#adding-client-functions-to-a-service) are converted to return a [Promise](https://eryn.io/roblox-lua-promise/api/Promise) that is resolved once the server returns a value.
+* [Signals](#signals) and [properties](#properties) are converted to their client version.
+* Functions in the [Signal table](#signals) are converted to signals.
+* Anything else is not included.
+
 ```luau
-export type client = {
-	GetMoney: (self: any) -> Promise.TypedPromise<number>,
-	-- Represents:
-	--> function MyService.Client.GetMoney(self: fish.self<sclient, server>): number
+function MyService.Client.GetMoney(self: fish.self<client, self>): number
+	return 100
+end
+-- In the reference:
+--> GetMoney: (self: any) -> Promise.TypedPromise<number>
 
-	SetMoney: (self: any, amount: number) -> Promise.TypedPromise<>
-	-- Represents:
-	--> function MyService.Client.SetMoney(self: fish.self<sclient, server>, amount: number)
-}
+MyService.Client.Announcement = fish.signal()
+-- In the reference:
+--> Announcement: ClientRemoteSignal
 ```
-:::tip Snippet
-**[fmf](snippets/#fish-mapping-function) (fish mapping function)**<br/>Maps a function in a service
-:::
-
-
-### Client Signals/Properties
-Simply use the appropriate type of `fish.ClientRemoteSignal` or `fish.ClientRemoteProperty` when defining signals or properties.
-```luau
-export type client = {
-	SomeSignal: fish.ClientRemoteSignal,
-	SomeProperty: fish.ClientRemoteProperty
-}
-```
-:::tip Snippet
-**[fms](snippets/#fish-mapping-signal) (fish mapping signal)**<br/>Maps a signal in a service
-
-**[fmp](snippets/#fish-mapping-property) (fish mapping property)**<br/>Maps a property in a service
+:::caution
+Client functions can only have their return values typed up to a maximum of **9 return values**. If a client function returns more than 9 values, the Promise it returns will no longer be typed.
 :::
 
 ## Adding client functions to a Service
-All functions added to the Client table are automatically exposed to the client and can be called. In order for proper typing, you must also define a [mapping](#mapping) that returns a Promise.
+All functions added to the Client table are automatically exposed to the client and can be called. The [reference](#reference) will automatically include these functions.
 
-fish provides its own self object that contains the player who called the function, useful libraries like [Mutex](https://en.wikipedia.org/wiki/Mutual_exclusion) that is exclusive for each function, as well as being able to access any public client function or server function. See all entries in the [API](/docs/1.1.8/API/Types#self<C,S>). Provide the types of your own client table and service table as parameters to fish.self for full type completion as well.
+fish provides its own self object that contains the player who called the function, useful libraries like [Mutex](advanced-features/mutex) that is exclusive for each function, as well as being able to access any public client function or server function. See all entries in the [API](/api/Types#self<C,S>). Provide the types of your own client table and service table as parameters to fish.self for full type completion as well.
 ```luau
-function MyService.Client.SayHello(self: fish.self<sclient, server>)
-	print("Hello from " .. self.Player)
+function MyService.Client.SayHello(self: fish.self<client, self>)
+	print("Hello from " .. self.Player.Name)
 	-- self.Mutex is available
 	-- self.confirm is available
 	-- Any other client functions can be called using self:OtherClientFunction()
-	-- Any server functions in this server can be called using self.Server:SomeServerFunction()
+	-- Any server functions in this service can be called using self.Server:SomeServerFunction()
 end
-
--- Mapping
-export type client = {
-	SayHello: (self: any) -> Promise.TypedPromise<>
-}
 ```
 :::tip Snippet
 **[ffc](snippets/#fish-function-client) (fish function client)**<br/>Create a public client function for a service
 :::
 Here's another example of a client function with parameters, type checking, and return values. This uses the [t package](https://github.com/osyrisrblx/t#readme) to validate types, making it very easy and concise to ensure the values passed in by the client is what you're expecting.
 ```luau
-function MyService.Client.GetInstanceProperty(self: fish.self<sclient, server>, instance: Instance, propertyName: string?): any
+function MyService.Client.GetInstanceProperty(self: fish.self<client, self>, instance: Instance, propertyName: string?): any
 	assert(t.tuple(t.Instance, t.optional(t.string))(instance, propertyName))
 
 	if propertyName == nil then
@@ -151,11 +157,6 @@ function MyService.Client.GetInstanceProperty(self: fish.self<sclient, server>, 
 		return instance[propertyName]
 	end
 end
-
--- Mapping
-export type client = {
-	GetInstanceProperty: (self: any, instance: Instance, propertyName: string?) -> Promise.TypedPromise<any>
-}
 ```
 
 ## Client Communication
@@ -164,13 +165,9 @@ Communicating with the client is only possible using **one-way communication** (
 * [Properties](#properties), which is a way of sharing data that can be read from or have its changes observed **at any point in time**. This data can be set to be the same for everyone, or can be modified independently for a single player. An example could be a server timer value that everyone sees the same, or a money value which each player sees their own data instead of a shared common value.
 
 ### Signals
-[Signals](https://sleitnick.github.io/RbxUtil/api/RemoteSignal/) (see their API for more info) allow you to send data to any player which are able to be listened to on the client in any controller. Signals can also be listened to on the server, allowing the client to fire an event and send data to the server without expecting a response. To create a signal, you want to use `fish.signal()` and define it in the Client table of the service to expose it. **You will also need to map this** which is shown below.
+[Signals](https://sleitnick.github.io/RbxUtil/api/RemoteSignal/) (see their API for more info) allow you to send data to any player which are able to be listened to on the client in any controller. Signals can also be listened to on the server, allowing the client to fire an event and send data to the server without expecting a response. To create a signal, you want to use `fish.signal()` and define it in the Client table of the service to expose it.
 ```luau
 MyService.Client.MoneyUpdated = fish.signal()
-
-export type client = {
-	MoneyUpdated: fish.ClientRemoteSignal
-}
 ```
 :::tip Snippet
 **[fs](snippets/#fish-signal) (fish signal)**<br/>Creates a public RemoteSignal
@@ -182,8 +179,8 @@ Here's an example of how to fire to a client and for a controller to listen to t
 ```luau
 -- MyService.lua
 function MyService.AddMoney(self: self, player: Player, amount: number)
-	money[player] -= amount
-	self.Client.MoneyUpdated:FireFor(player, amount)
+	money[player] += amount
+	self.Client.MoneyUpdated:Fire(player, money[player])
 end
 
 -- MyController.lua
@@ -196,16 +193,12 @@ end
 If you wish to listen to when the client fires an event to the server, you can either listen to the same way `MyController.Start()` does in the code block above but on the server instead, or you can use the Signal table defined earlier within the Client table. This convention follows very similarly to [client functions](#adding-client-functions-to-a-service) and is therefore recommended.
 ```luau
 -- MyService.lua
-function MyService.Client.Signal.MousePositionUpdate(self: fish.self<sclientsignal, server>, position: Vector2)
+function MyService.Client.Signal.MousePositionUpdate(self: fish.self<clientSignal, self>, position: Vector2)
 	print("The mouse position of " .. self.Player.Name .. " is now " .. tostring(position))
 end
 
-export type client = {
-	MousePositionUpdate: fish.ClientRemoteSignal
-}
-
 -- MyController.lua
-local Mouse = Players.LocalPlayer:GetMouse()
+const Mouse = Players.LocalPlayer:GetMouse()
 function MyController.Start(self: self)
 	local mousePosition = Vector2.new(Mouse.X, Mouse.Y)
 	MyService.MousePositionUpdate:Fire(mousePosition)
@@ -216,13 +209,9 @@ end
 :::
 
 ### Properties
-[Properties](https://sleitnick.github.io/RbxUtil/api/RemoteProperty) (see their API for more info) allow you to share any type of data with all players and additionally modify that data only for a specific player. For example, this is a good way to store a currency as you can set the default value to 0 in the property, but later modify that value for a player to match what they have allowing the client to listen to when that value changes with `Observe()` or to get it at any point in time using `Get()`. To create a property, you want to use `fish.property()` and define it in the Client table of the service to expose it. **You will also need to map this** which is shown below.
+[Properties](https://sleitnick.github.io/RbxUtil/api/RemoteProperty) (see their API for more info) allow you to share any type of data with all players and additionally modify that data only for a specific player. For example, this is a good way to store a currency as you can set the default value to 0 in the property, but later modify that value for a player to match what they have allowing the client to listen to when that value changes with `Observe()` or to get it at any point in time using `Get()`. To create a property, you want to use `fish.property()` and define it in the Client table of the service to expose it.
 ```luau
 MyService.Client.Money = fish.property(0) -- pass in the initial value of the property
-
-export type client = {
-	Money: fish.ClientRemoteProperty
-}
 ```
 :::tip Snippet
 **[fp](snippets/#fish-property) (fish property)**<br/>Creates a public RemoteProperty
@@ -242,7 +231,7 @@ end
 function MyController.Start(self: self)
 	-- Fires immediately with the current value, then fires every time money changes
 	MyService.Money:Observe(function(money)
-		print("I currently have $" .. money)	
+		print("I currently have $" .. money)
 	end)
 
 	-- One-time get
@@ -252,13 +241,14 @@ end
 ```
 
 ## Full Example
-<!-- See the [tests folder](https://github.com/StevenDahFish/fish/tree/master/tests) in the GitHub repository for a full game example. -->
 ```luau
-local fish = require(ReplicatedStorage.Packages.fish); fish = fish.Server
-local Promise = require(ReplicatedStorage.Packages.Promise)
-local Signal = require(ReplicatedStorage.Packages.Signal)
-local t = require(ReplicatedStorage.Packages.t)
-local PlayerService = {Client = {}}
+const Players = game:GetService("Players")
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+const fish = require(ReplicatedStorage.Packages.fish); const fish = fish.Server
+const Signal = require(ReplicatedStorage.Packages.Signal)
+const t = require(ReplicatedStorage.Packages.t)
+const PlayerService = {Client = {Signal = {}}}
 
 PlayerService.OnMoneyChange = Signal.new()
 
@@ -266,12 +256,12 @@ PlayerService.Client.Announcement = fish.signal()
 PlayerService.Client.Money = fish.property(0)
 
 function PlayerService.AddMoney(self: self, player: Player, amount: number)
-	local currentMoney = self.Client.Money:GetFor(player)
-	self.Client.Money:SetFor(money, currentMoney + amount)
-	self.OnMoneyChange:FireAll(player, currentMoney + amount)
+	const currentMoney = self.Client.Money:GetFor(player)
+	self.Client.Money:SetFor(player, currentMoney + amount)
+	self.OnMoneyChange:Fire(player, currentMoney + amount)
 end
 
-function PlayerService.Client.AskForMoney(self: fish.self<sclient, server>, amount: number): boolean
+function PlayerService.Client.AskForMoney(self: fish.self<client, self>, amount: number): boolean
 	self.confirm(t.number(amount)) -- equivalent to assert(), but silently fails instead of throwing an error
 	if math.random() < 0.1 then
 		self.Server:AddMoney(self.Player, amount)
@@ -282,6 +272,11 @@ function PlayerService.Client.AskForMoney(self: fish.self<sclient, server>, amou
 	end
 end
 
+function PlayerService.Client.Signal.SendChat(self: fish.self<clientSignal, self>, message: string)
+	self.confirm(t.string(message))
+	self.Server.Client.Announcement:FireAll(self.Player.Name .. ": " .. message)
+end
+
 function PlayerService.Start(self: self)
 	Players.PlayerAdded:Connect(function(player)
 		self.Client.Money:SetFor(player, 10)
@@ -289,16 +284,9 @@ function PlayerService.Start(self: self)
 	end)
 end
 
--- Mapping
-export type client = {
-	AskForMoney: (self: any, amount: number) -> Promise.TypedPromise<boolean>,
-
-	Announcement: fish.ClientRemoteSignal,
-	Money: fish.ClientRemoteProperty
-}
-
 type self = typeof(PlayerService)
-type sclient = typeof(PlayerService.Client)
-type sclientsignal = typeof(PlayerService.Client.Signal)
-return fish.service("PlayerService", PlayerService :: fish.ServiceDef, script)
+type client = typeof(PlayerService.Client)
+type clientSignal = typeof(PlayerService.Client.Signal)
+export type reference = fish.ServiceToReference<client>
+return fish.service(script, PlayerService)
 ```

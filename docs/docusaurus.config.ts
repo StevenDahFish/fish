@@ -19,7 +19,24 @@ const config: Config = {
         classOrder: [],
         apiCategories: []
       },
-    ]
+    ],
+    function htmlLoaderPlugin() {
+      return {
+        name: 'html-loader-plugin',
+        configureWebpack() {
+          return {
+            module: {
+              rules: [
+                {
+                  test: /\.html$/,
+                  use: 'raw-loader',
+                },
+              ],
+            },
+          };
+        },
+      };
+    },
   ],
 
   // Set the production url of your site here
@@ -53,19 +70,16 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          lastVersion: '1.1.8',
+          lastVersion: 'current',
           versions: {
             current: {
-              label: '2.0.0+',
-              // badge: false,
-              // path: ''
+              label: '2.0.0',
+              badge: false,
+              path: ''
             },
             '1.1.8': {
               label: '1.1.8',
-              // path: "1.1.8",
-
-              // remove after:
-              badge: false
+              path: "1.1.8"
             }
           }
         },
